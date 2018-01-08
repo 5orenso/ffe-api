@@ -78,6 +78,8 @@ None.
 curl -H 'Authorization: Bearer <your jwt token>' 'http://localhost:8000/api/products/10328-033-20'
 ```
 
+* __javascript:__
+
 ```javascript
 const https = require('https');
 
@@ -98,6 +100,8 @@ https.get('https://dealer.flyfisheurope.com/api/products/10328-033-20', (res) =>
 ```bash
 curl -H 'Authorization: Bearer <your jwt token>' 'http://localhost:8000/api/products/?limit=2&offset=0'
 ```
+
+* __javascript:__
 
 ```javascript
 const https = require('https');
