@@ -4,10 +4,10 @@ Returns json data about a product.
 
 ### URL
 
-| URL                        | Method | Example value | Description
-|----------------------------|--------|---------------|----------------------------
-| /api/products/             | GET    | 10328-033-20  | Get a list of products.
-| /api/products/:articleno   | GET    | 10328-033-20  | Get a specific product.
+| URL                        | Method | Description
+|----------------------------|--------|----------------------------
+| /api/products/             | GET    | Get a list of products.
+| /api/products/:articleno   | GET    | Get a specific product.
 
 
 ### URL Params
