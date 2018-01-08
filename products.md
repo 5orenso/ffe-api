@@ -42,7 +42,7 @@ None.
 
   * __Code:__ 200   
     __Content:__
-```json
+```javascript
 {
     "articleno": "10328-033-20",
     "maingroupno": 101,
