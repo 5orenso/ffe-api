@@ -52,6 +52,8 @@ None.
     "size": "S",
     "brand": "simms",
     "itemCategory": "WADERS",
+    "mainCategory": "waders",
+    "intermediateCategory": "G4Z Stockingfoot",
     "nameDisplay": "G4Z® Stockingfoot",
     "availability": "Yes",
     "retailCurrency": "NOK",
