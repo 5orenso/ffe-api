@@ -53,6 +53,9 @@ None.
     "brand": "simms",
     "itemCategory": "WADERS",
     "nameDisplay": "G4Z® Stockingfoot",
+    "availability": "Yes",
+    "retailCurrency": "NOK",
+    "retailPrice": 9999,
     "newInfo": "",
     "description": "The angler evolution has been distilled to three simple steps: Catch a fish. Catch many fish. Catch the fish. Wise words, but limiting. In reality you define your fishing quest. And wherever it leads, G4Z® stockingfoots are built for the pinnacle with 5-layer GORE-TEX® PRO SHELL fabric that bolsters durability and enhances breathability by 25 percent. Powered by the most feature-rich mix on the market, G4Zs include YKK® waterproof center-front zipper for easy access/optimal ventilation, plush handwarmer pockets to toast frozen digits fast, and everything you need for an evolved wader that goes way beyond the basic.",
     "features": "Features\r\r•5-layer GORE -TEX® fabric - only featured in the G4Z & G4 Pro Waders - found in the seat, waist & throughout leg with 25% more breathability\r•Extended YKK® Aquaseal waterproof center-front zipper in the G4Z allows easy access for quick relief & additional ventilation; the center-front zip also allows for easy on/easy off\r•Most feature-rich wader in the Simms line:\r◦Large zippered chest pockets\r◦Comfortable lined hand warmer pockets provide room for heater packs, offer quick/easy hand warm-up & convenient hand placement\r◦Built-in low profile belt loops with high-quality 2” elastic belt featuring Simms Trout buckle\r◦2 Retractor docking stations; G4Z includes 1 Simms Retractor\r◦Included Super-fly Patch\r•Adjustable stretch spacer mesh/elastic suspenders provide the most advanced & comfortable suspender system available\r•Built-in Gravel Guards feature ultra abrasion-resistant material for added durability\r•Updated styling details set this wader apart from all others\r•Read more about Pro Shell \r FABRIC TECH: GORE-TEX® 3-layer Pro Shell Technology in upper/GORE-TEX ® 5-layer Pro Shell Technology in lower - 25% more breathable\rAPPROX. WEIGHT: 51 oz/1446 g\rSIZES: S, M, MS, MK, ML, L(9-11), LS, LK, LL(9-11), XL, XLS, XXL",
@@ -82,16 +85,30 @@ curl -H 'Authorization: Bearer <your jwt token>' 'http://localhost:8000/api/prod
 
 ```javascript
 const https = require('https');
+const jwtToken = '<your jwt token>';
 
-https.get('https://dealer.flyfisheurope.com/api/products/10328-033-20', (res) => {
+const options = {
+    hostname: 'dealer.flyfisheurope.com',
+    port: 443,
+    path: '/api/products/10328-033-20',
+    method: 'GET',
+    headers: {
+        Authorization: `Bearer ${jwtToken}`
+    }
+};
+
+const req = https.request(options, (res) => {
     console.log('statusCode:', res.statusCode);
     console.log('headers:', res.headers);
     res.on('data', (data) => {
         process.stdout.write(data);
     });
-}).on('error', (err) => {
-    console.error(err);
 });
+
+req.on('error', (e) => {
+  console.error(e);
+});
+req.end();
 ```
 
 #### Product list
@@ -105,16 +122,30 @@ curl -H 'Authorization: Bearer <your jwt token>' 'http://localhost:8000/api/prod
 
 ```javascript
 const https = require('https');
+const jwtToken = '<your jwt token>';
 
-https.get('https://dealer.flyfisheurope.com/api/products/?limit=10', (res) => {
+const options = {
+    hostname: 'dealer.flyfisheurope.com',
+    port: 443,
+    path: '/api/products/?limit=2&offset=0',
+    method: 'GET',
+    headers: {
+        Authorization: `Bearer ${jwtToken}`
+    }
+};
+
+const req = https.request(options, (res) => {
     console.log('statusCode:', res.statusCode);
     console.log('headers:', res.headers);
     res.on('data', (data) => {
         process.stdout.write(data);
     });
-}).on('error', (err) => {
-    console.error(err);
 });
+
+req.on('error', (e) => {
+  console.error(e);
+});
+req.end();
 ```
 
 
