@@ -4,7 +4,7 @@ Flyfish Europe REST API Client examples.
 
 ## Clients in different languages
 
-- [Client side Javascript (vanilla js)](html-client.html)
+- [Client side Javascript SDK](html-client.html)
 
 ## Other resources
 

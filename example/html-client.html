@@ -17,20 +17,20 @@
 
         Brands:<br>
         <div class="brand">
-            <a href="#simms" onclick="getProductList('simms')">Simms</a> |
-            <a href="#simms" onclick="getProductList('scott')">Scott</a> |
-            <a href="#simms" onclick="getProductList('ww-l')">WW-L</a> |
-            <a href="#simms" onclick="getProductList('sa')">Scientific Anglers</a> |
-            <a href="#simms" onclick="getProductList('trouthunter')">Trouthunter</a> |
-            <a href="#simms" onclick="getProductList('c&f')">C&F</a> |
-            <a href="#simms" onclick="getProductList('mclean')">McLean</a> |
-            <a href="#simms" onclick="getProductList('loon')">Loon</a> |
-            <a href="#simms" onclick="getProductList('smith optics')">Smith Optics</a> |
-            <a href="#simms" onclick="getProductList('omnispool')">Omnispool</a> |
-            <a href="#simms" onclick="getProductList('rodmount')">RodMounts</a> |
-            <a href="#simms" onclick="getProductList('smith creek')">Smith Creek</a> |
-            <a href="#simms" onclick="getProductList('deyoung')">De Young</a> |
-            <a href="#simms" onclick="getProductList('close-out')">Close-out</a> |
+            <a href="#simms" onclick="FFE.getProductList('simms')">Simms</a> |
+            <a href="#simms" onclick="FFE.getProductList('scott')">Scott</a> |
+            <a href="#simms" onclick="FFE.getProductList('ww-l')">WW-L</a> |
+            <a href="#simms" onclick="FFE.getProductList('sa')">Scientific Anglers</a> |
+            <a href="#simms" onclick="FFE.getProductList('trouthunter')">Trouthunter</a> |
+            <a href="#simms" onclick="FFE.getProductList('c&f')">C&F</a> |
+            <a href="#simms" onclick="FFE.getProductList('mclean')">McLean</a> |
+            <a href="#simms" onclick="FFE.getProductList('loon')">Loon</a> |
+            <a href="#simms" onclick="FFE.getProductList('smith optics')">Smith Optics</a> |
+            <a href="#simms" onclick="FFE.getProductList('omnispool')">Omnispool</a> |
+            <a href="#simms" onclick="FFE.getProductList('rodmount')">RodMounts</a> |
+            <a href="#simms" onclick="FFE.getProductList('smith creek')">Smith Creek</a> |
+            <a href="#simms" onclick="FFE.getProductList('deyoung')">De Young</a> |
+            <a href="#simms" onclick="FFE.getProductList('close-out')">Close-out</a> |
         </div>
         <hr>
 
@@ -45,53 +45,10 @@
         Productlist:<br>
         <div id="productList"></div>
 
-<script>
-    function fetchApi(url) {
-        const jwtToken = '<your jwtToken for the dealerweb>';
-        const myInit = {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${jwtToken}`
-            },
-            mode: 'cors',
-            cache: 'default'
-        };
-        const myRequest = new Request(url, myInit);
-        return fetch(myRequest)
-            .then((response) => response.json());
-    }
-
-    function getProduct(articleno) {
-        fetchApi(`https://dealer.flyfisheurope.com/api/products/${articleno}`)
-            .then((data) => {
-                const productImage = document.querySelector('#productImage');
-                productImage.src = `https://dealer.flyfisheurope.com${data.images.medium}`;
-                const productName = document.querySelector('#productName');
-                productName.innerHTML = data.nameDisplay || data.name;
-                const productPrice = document.querySelector('#productPrice');
-                productPrice.innerHTML = `${data.retailCurrency} ${data.retailPrice}`;
-            });
-    }
-
-    function getProductList(brand) {
-        fetchApi(`https://dealer.flyfisheurope.com/api/products/?brand=${brand}&limit=100`)
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    const productList = document.querySelector('#productList');
-                    productList.innerHTML = '';
-                    for (let i = 0, l = data.length; i < l; i += 1) {
-                        const prod = data[i];
-                        const elChild = document.createElement('div');
-                        elChild.innerHTML = `<a href="#${prod.articleno}" onclick="getProduct('${prod.articleno}');">
-                            <img src="https://dealer.flyfisheurope.com${prod.images.small}">
-                            ${prod.nameDisplay || prod.name}</a>`;
-                        productList.appendChild(elChild);
-                    }
-                }
-            });
-    }
-
-</script>
+        <script type="text/javascript">
+            FFE_TOKEN = '<your jwtToken for the dealerweb>';
+        </script>
+        <script type="text/javascript" src="./ffe-api-sdk.js"></script>
 
     </body>
 </html>
