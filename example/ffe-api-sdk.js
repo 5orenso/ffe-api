@@ -1,6 +1,13 @@
 var FFE = (function () {
+    const TOKEN = FFE_TOKEN;
+    const URL = FFE_URL || 'https://dealer.flyfisheurope.com/api';
+    let IMAGE_DOMAIN = FFE_IMAGE_DOMAIN;
+    if (typeof IMAGE_DOMAIN === 'undefined') {
+        IMAGE_DOMAIN = 'https://dealer.flyfisheurope.com';
+    }
+
     function fetchApi(url) {
-        const jwtToken = FFE_TOKEN;
+        const jwtToken = TOKEN;
         const myInit = {
             method: 'GET',
             headers: {
@@ -15,10 +22,10 @@ var FFE = (function () {
     }
 
     function getProduct(articleno) {
-        fetchApi(`https://dealer.flyfisheurope.com/api/products/${articleno}`)
+        fetchApi(`${URL}/products/${articleno}`)
             .then((data) => {
                 const productImage = document.querySelector('#productImage');
-                productImage.src = `https://dealer.flyfisheurope.com${data.images.medium}`;
+                productImage.src = `${IMAGE_DOMAIN}${data.images.medium}`;
                 const productName = document.querySelector('#productName');
                 productName.innerHTML = data.nameDisplay || data.name;
                 const productPrice = document.querySelector('#productPrice');
@@ -27,7 +34,7 @@ var FFE = (function () {
     }
 
     function getProductList(brand) {
-        fetchApi(`https://dealer.flyfisheurope.com/api/products/?brand=${brand}&limit=100`)
+        fetchApi(`${URL}/products/?brand=${brand}&limit=100`)
             .then((data) => {
                 if (Array.isArray(data)) {
                     const productList = document.querySelector('#productList');
@@ -36,7 +43,7 @@ var FFE = (function () {
                         const prod = data[i];
                         const elChild = document.createElement('div');
                         elChild.innerHTML = `<a href="#${prod.articleno}" onclick="FFE.getProduct('${prod.articleno}');">
-                            <img src="https://dealer.flyfisheurope.com${prod.images.small}">
+                            <img src="${IMAGE_DOMAIN}${prod.images.small}">
                             ${prod.nameDisplay || prod.name}</a>`;
                         productList.appendChild(elChild);
                     }
