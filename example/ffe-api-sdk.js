@@ -1,10 +1,16 @@
 var FFE = (function () {
-    const TOKEN = FFE_TOKEN;
-    const URL = FFE_URL || 'https://dealer.flyfisheurope.com/api';
-    let IMAGE_DOMAIN = FFE_IMAGE_DOMAIN;
-    if (typeof IMAGE_DOMAIN === 'undefined') {
-        IMAGE_DOMAIN = 'https://dealer.flyfisheurope.com';
+    if (typeof FFE_TOKEN === 'undefined') {
+        console.error('FFE_TOKEN missing. Please add this to your html page and try again.');
     }
+    if (typeof FFE_URL === 'undefined') {
+        FFE_URL = 'https://dealer.flyfisheurope.com/api';
+    }
+    if (typeof FFE_IMAGE_DOMAIN === 'undefined') {
+        FFE_IMAGE_DOMAIN = 'https://dealer.flyfisheurope.com';
+    }
+    const TOKEN = FFE_TOKEN;
+    const URL = FFE_URL;
+    const IMAGE_DOMAIN = FFE_IMAGE_DOMAIN;
 
     function fetchApi(url) {
         const jwtToken = TOKEN;
