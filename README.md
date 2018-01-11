@@ -5,6 +5,7 @@ Flyfish Europe JSON REST API.
 ## API endpoints
 
 - [/api/products/](products.md)
+- [/api/categories/](categories.md)
 
 Contact us to get an API token.
 

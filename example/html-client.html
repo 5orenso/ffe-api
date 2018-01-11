@@ -6,6 +6,19 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <style>
+            .product {
+                border: 1px #a0a0a0 solid;
+                margin: 5px;
+                float: left;
+                height: 100px;
+                width: calc(25% - 12px);
+            }
+            .productList {
+                border-bottom: 1px #a0a0a0 solid;
+                margin-bottom: 10px;
+            }
+        </style>
     </head>
     <body>
         <!--[if lte IE 9]>
@@ -35,7 +48,7 @@
         <hr>
 
         Product:<br>
-        <div name="product">
+        <div id="product">
             <img id="productImage"><br>
             Name: <span id="productName"></span><br>
             Price: <span id="productPrice"></span><br>
@@ -43,7 +56,10 @@
         <hr>
 
         Productlist:<br>
-        <div id="productList"></div>
+        <div id="productList" class="productList"></div>
+
+        <br clear="all">
+        <div class="pagination" id="productPagination"></div>
 
         <script type="text/javascript">
             FFE_TOKEN = '<your clientside jwtToken for the dealerweb>';
