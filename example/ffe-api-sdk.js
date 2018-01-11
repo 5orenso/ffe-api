@@ -28,6 +28,10 @@ var FFE = (function () {
             .then((response) => response.json());
     }
 
+    function ucFirst(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     function getProduct(articleno) {
         fetchApi(`${URL}/products/${articleno}`)
             .then((data) => {
@@ -35,8 +39,15 @@ var FFE = (function () {
                 productImage.src = `${IMAGE_DOMAIN}${data.images.medium}`;
                 const productName = document.querySelector('#productName');
                 productName.innerHTML = data.nameDisplay || data.name;
-                const productPrice = document.querySelector('#productPrice');
-                productPrice.innerHTML = `${data.retailCurrency} ${data.retailPrice}`;
+                const updateFields = ['brand', 'itemCategory', 'retailPrice', 'color', 'size', 'availability', 'retailCurrency',
+                    'description', 'features'];
+                for (let i = 0, l = updateFields.length; i < l; i += 1) {
+                    const field = updateFields[i];
+                    const element = document.querySelector(`#product${ucFirst(field)}`);
+                    if (element) {
+                        element.innerHTML = data[field];
+                    }
+                }
             });
     }
 

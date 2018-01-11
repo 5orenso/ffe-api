@@ -18,9 +18,14 @@
                 border-bottom: 1px #a0a0a0 solid;
                 margin-bottom: 10px;
             }
+            .productList:after {
+                content: '';
+                display: block;
+                clear: both;
+            }
         </style>
-    </head>
-    <body>
+        </head>
+        <body>
         <!--[if lte IE 9]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
         <![endif]-->
@@ -46,12 +51,21 @@
             <a href="#simms" onclick="FFE.getProductList('close-out')">Close-out</a> |
         </div>
         <hr>
+        Categorylist:<br>
+        <div id="categoryList" class="categoryList"></div>
 
         Product:<br>
         <div id="product">
             <img id="productImage"><br>
-            Name: <span id="productName"></span><br>
-            Price: <span id="productPrice"></span><br>
+            <span id="productName"></span><br>
+            Color: <span id="productColor"></span>
+            Size: <span id="productSize"></span><br>
+            <span id="productBrand"></span>: <span id="productItemCategory"></span><br>
+            Price: <span id="productRetailCurrency"></span>
+                <span id="productRetailPrice"></span><br>
+            Availability: <span id="productAvailability"></span>
+            <p><span id="productDescription"></span></p>
+            <p><span id="productFeatures"></span></p>
         </div>
         <hr>
 
@@ -60,6 +74,7 @@
 
         <br clear="all">
         <div class="pagination" id="productPagination"></div>
+
 
         <script type="text/javascript">
             FFE_TOKEN = '<your clientside jwtToken for the dealerweb>';
