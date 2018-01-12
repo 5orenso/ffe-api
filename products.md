@@ -68,6 +68,31 @@ None.
         "small": "//ffe-web-images-resized.s3-website-eu-west-1.amazonaws.com/80x80/product_1_4974.jpg",
         "medium": "//ffe-web-images-resized.s3-website-eu-west-1.amazonaws.com/400x/product_1_4974.jpg",
         "large": "//ffe-web-images-resized.s3-website-eu-west-1.amazonaws.com/800x/product_1_4974.jpg"
+    },
+    "sizes": [
+        "3XL",
+        "3XLS",
+        "XXLS",
+        "XL",
+        "LL",
+        "XXLK",
+        "LS",
+        "XLS",
+        "L",
+        "4XL",
+        "LK",
+        "ML",
+        "XXL",
+        "M",
+        "MK",
+        "MS",
+        "S"
+    ],
+    "colors": [
+        "Greystone"
+    ],
+    "imgRef": {
+        "Greystone": 4974
     }
 }
 ```
