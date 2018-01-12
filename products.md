@@ -108,7 +108,7 @@ None.
 
 * __curl:__
 ```bash
-curl -H 'Authorization: Bearer <your jwt token>' 'http://localhost:8000/api/products/10328-033-20'
+curl -H 'Authorization: Bearer <your jwt token>' 'https://dealer.flyfisheurope.com/api/products/10328-033-20'
 ```
 
 * __javascript:__
@@ -145,7 +145,7 @@ req.end();
 
   * __curl:__
 ```bash
-curl -H 'Authorization: Bearer <your jwt token>' 'http://localhost:8000/api/products/?limit=2&offset=0'
+curl -H 'Authorization: Bearer <your jwt token>' 'https://dealer.flyfisheurope.com/api/products/?limit=2&offset=0&unique=true'
 ```
 
 * __javascript:__
