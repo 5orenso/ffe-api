@@ -7,12 +7,59 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <style>
+             body {
+                 font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+                 font-weight: 300;
+             }
             .product {
                 border: 1px #a0a0a0 solid;
                 margin: 5px;
                 float: left;
                 height: 100px;
                 width: calc(25% - 12px);
+                overflow: hidden;
+            }
+            .product img {
+                float: left;
+                width: 25%;
+            }
+            .product .info {
+                float: left;
+                width: 75%;
+            }
+            .product .name,  .product .category {
+                width: 100%;
+                float: left;
+            }
+            .product .category {
+                font-size: .8em;
+            }
+            .product .availability {
+                border: 0px;
+                border-radius: 4px;
+                width: calc(35% - 5px);
+                float: right;
+                font-size: .8em;
+                margin-left: 5px;
+                text-align: center;
+            }
+            .product .availability.yes {
+                background-color: #00aa00;
+                color: #ffffff;
+            }
+            .product .availability.no {
+                background-color: #aa0000;
+                color: #ffffff;
+            }
+            .product .availability.soon {
+                background-color: #ff9900;
+                color: #ffffff;
+            }
+            .product .price {
+                text-align: right;
+                font-weight: bold;
+                width: 50%;
+                float: right;
             }
             .productList {
                 border-bottom: 1px #a0a0a0 solid;

@@ -32,6 +32,9 @@ Returns json data about a product.
 |-----------|--------------|---------------|---------------------------------------
 | limit     | integer      | 50            | Number of products you want in your result data.
 | offset    | integer      | 50            | Pagination offset.
+| maingroup | integer      | 101           | Filter by maingroupno. Ie. Simms Waders = 101
+| intgroup  | integer      | 1033          | Filter by maingroupno. Ie. Fall headwear = 1033
+| unique    | boolean      | true          | Group products into unique products with size and colors as options. Ie. G4Z® Stockingfoot Sizes: [S, M, L, XXL], Color: ['Greystone'].
 
 
 ### Data Params

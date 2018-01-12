@@ -32,6 +32,22 @@ var FFE = (function () {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
+    function pad(num) {
+        let r = String(num);
+        if (r.length === 1) {
+            r = `0${r}`;
+        }
+        return r;
+    }
+
+    function ffeDate(date) {
+        let day = pad(date.getDate());
+        let month = pad(date.getMonth() + 1);
+        let year = String(date.getFullYear());
+        year = year.slice(2);
+        return `${day}.${month}.${year}`;
+    }
+
     function getProduct(articleno) {
         fetchApi(`${URL}/products/${articleno}`)
             .then((data) => {
@@ -44,14 +60,14 @@ var FFE = (function () {
                 for (let i = 0, l = updateFields.length; i < l; i += 1) {
                     const field = updateFields[i];
                     const element = document.querySelector(`#product${ucFirst(field)}`);
-                    if (element) {
+                    if (element && data[field]) {
                         element.innerHTML = data[field];
                     }
                 }
             });
     }
 
-    function getProductList($brand, $maingroup, $limit = LIMIT, $offset = 0) {
+    function getProductList($brand, $maingroup, $limit = LIMIT, $offset = 0, $unique = true) {
         let brand;
         let maingroup;
         let limit;
@@ -67,18 +83,45 @@ var FFE = (function () {
             limit = $limit;
             offset = $offset;
         }
-        fetchApi(`${URL}/products/?brand=${brand}&maingroup=${maingroup}&limit=${limit}&offset=${offset}`)
+        fetchApi(`${URL}/products/?brand=${brand}&maingroup=${maingroup}&limit=${limit}&offset=${offset}&unique=${$unique}`)
             .then((data) => {
                 if (Array.isArray(data)) {
                     const productList = document.querySelector('#productList');
                     productList.innerHTML = '';
                     for (let i = 0, l = data.length; i < l; i += 1) {
                         const prod = data[i];
+                        let availabilityText;
+                        let availabilityClass;
+                        if (typeof prod.availability === 'string') {
+                            if (prod.availability.match(/Yes/)) {
+                                availabilityText = 'YES';
+                                availabilityClass = 'yes';
+                            } else if (prod.availability.match(/No/)) {
+                                availabilityText = 'NO';
+                                availabilityClass = 'no';
+                            } else if (prod.availability.match(/\d{4}-\d{2}-\d{2}/)) {
+                                const date = new Date(prod.availability);
+                                availabilityText = ffeDate(date);
+                                availabilityClass = 'soon';
+                            } else {
+                                availabilityText = String(prod.availability);
+                                availabilityClass = 'yes';
+                            }
+                        } else if (typeof prod.availability === 'number') {
+                            availabilityText = String(prod.availability);
+                            availabilityClass = 'yes';
+                        }
                         const elChild = document.createElement('div');
                         elChild.setAttribute('class', 'product');
                         elChild.innerHTML = `<a href="#${prod.brand}:${prod.maingroupno}:${prod.articleno}" onclick="FFE.getProduct('${prod.articleno}');">
-                            <img src="${IMAGE_DOMAIN}${prod.images.small}">
-                            ${prod.nameDisplay || prod.name}</a>`;
+                            <img src="${IMAGE_DOMAIN}${prod.images.small}"></a>
+                            <div class="info">
+                                <span class="name"><a href="#${prod.brand}:${prod.maingroupno}:${prod.articleno}" onclick="FFE.getProduct('${prod.articleno}');">${prod.name}</a></span>
+                                <span class="category">${prod.mainCategory || ''} / ${prod.intermediateCategory || ''}</span><br clear="all">
+                                <span class="price">${prod.retailCurrency || ''} ${prod.retailPrice || 'n/a'}</span>
+                                <span class="availability ${availabilityClass}">${availabilityText}</span>
+                            </div>
+                        `;
                         productList.appendChild(elChild);
                     }
                     // Load pagination
