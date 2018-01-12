@@ -157,7 +157,7 @@ const jwtToken = '<your jwt token>';
 const options = {
     hostname: 'dealer.flyfisheurope.com',
     port: 443,
-    path: '/api/products/?limit=2&offset=0',
+    path: '/api/products/?limit=2&offset=0&unique=true',
     method: 'GET',
     headers: {
         Authorization: `Bearer ${jwtToken}`
