@@ -5,8 +5,8 @@ Flyfish Europe REST API Client examples.
 ## Clients in different languages
 
 - [Client side Javascript SDK](html-client.html)
-- [Node.js server side SDK](ffe.js)
-- [Node.js server side SDK example](simple-dist.js)
+- [Node.js server side SDK](node/ffe.js)
+- [Node.js server side SDK example](node/simple-dist.js)
 
 
 ## Howto test Client side javascript
