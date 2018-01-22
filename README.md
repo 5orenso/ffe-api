@@ -9,9 +9,17 @@ Flyfish Europe JSON REST API.
 
 Contact us to get an API token.
 
-## Example code
+
+## SDKs
+
+- [Client side Javascript](./sdk/javascript/)
+- [Server side Javascript (Node.js)](./sdk/node.js/)
+
+
+## Code examples
 
 - [Example code](./example/)
+
 
 ## Other resources
 
