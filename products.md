@@ -1,6 +1,6 @@
 ## Products
 
-Returns json data about a product.
+Returns json data about a products.
 
 ### URL
 

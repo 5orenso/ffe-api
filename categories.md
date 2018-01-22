@@ -1,6 +1,6 @@
 ## categories
 
-Returns json data about a category.
+Returns json data about a categories.
 
 ### URL
 
