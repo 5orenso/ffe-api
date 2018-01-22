@@ -21,11 +21,11 @@ var FFE = (function () {
                 Authorization: `Bearer ${jwtToken}`
             },
             mode: 'cors',
-            cache: 'default'
+            cache: 'default',
         };
         const myRequest = new Request(url, myInit);
         return fetch(myRequest)
-            .then((response) => response.json());
+            .then(response => response.json());
     }
 
     function ucFirst(string) {

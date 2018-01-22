@@ -40,12 +40,12 @@ class FFE {
         return '';
     }
 
-    product(articleno) {
-        return this.getEndpoint(`/api/products/${articleno}`);
+    brand(brandno) {
+        return this.getEndpoint(`/api/brands/${brandno}`);
     }
 
-    products(opt) {
-        return this.getEndpoint(`/api/products/${this.makeQueryString(opt)}`);
+    brands() {
+        return this.getEndpoint('/api/brands/');
     }
 
     category(categoryno) {
@@ -54,6 +54,14 @@ class FFE {
 
     categories(opt) {
         return this.getEndpoint(`/api/categories/${this.makeQueryString(opt)}`);
+    }
+
+    product(articleno) {
+        return this.getEndpoint(`/api/products/${articleno}`);
+    }
+
+    products(opt) {
+        return this.getEndpoint(`/api/products/${this.makeQueryString(opt)}`);
     }
 
     getEndpoint(url) {

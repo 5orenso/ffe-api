@@ -4,10 +4,11 @@ Flyfish Europe JSON REST API.
 
 ## API endpoints
 
-- [/api/products/](products.md)
+- [/api/brands/](brands.md)
 - [/api/categories/](categories.md)
+- [/api/products/](products.md)
 
-Contact us to get an API token.
+You can create an API token on the DealerWeb under My Account.
 
 
 ## SDKs
