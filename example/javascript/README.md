@@ -6,6 +6,13 @@ Flyfish Europe REST API client side examples.
 
 - [Example HTML file](html-client.html)
 
+```html
+<script type="text/javascript">
+    FFE_TOKEN = '<your clientside jwtToken for the dealerweb>';
+</script>
+<script type="text/javascript" src="https://rawgit.com/5orenso/ffe-api/master/sdk/javascript/ffe-api-sdk.js"></script>
+```
+
 
 ## Howto test Client side javascript
 
