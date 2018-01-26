@@ -24,3 +24,19 @@ ffe.products({ limit: 20, brand: 'simms' })
 ```
 
 That's it!
+
+
+## Methods
+
+- brand
+    ```javascript
+        ffe.brand();
+    ```
+- brands
+    ```javascript
+        ffe.brands();
+    ```
+- category
+- categories
+- product
+- products
