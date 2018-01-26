@@ -28,15 +28,18 @@ That's it!
 
 ## Methods
 
-- brand
+- brand(<brandno>)
     ```javascript
-        ffe.brand();
+        ffe.brand()
+            .then((brand) => {
+                console.log(brand);
+            });
     ```
-- brands
+- brands()
     ```javascript
         ffe.brands();
     ```
-- category
-- categories
-- product
-- products
+- category(<categoryno>)
+- categories()
+- product(<productno>)
+- products()
