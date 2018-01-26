@@ -28,7 +28,7 @@ That's it!
 
 ## Methods
 
-- brand(<brandno>)
+- brand(&lt;brandno&gt;)
     ```javascript
         ffe.brand()
             .then((brand) => {
