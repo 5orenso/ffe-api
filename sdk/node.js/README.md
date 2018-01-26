@@ -44,7 +44,35 @@ That's it!
             console.log(brands);
         });
     ```
-- category(<categoryno>)
+- category(&lt;catgeoryno&gt;)
+    ```javascript
+    // Get a specific brand.
+    ffe.category(1004)
+        .then((category) => {
+            console.log(category);
+        });
+    ```
 - categories()
-- product(<productno>)
+    ```javascript
+    // Get a list of brands.
+    ffe.categories()
+        .then((categories) => {
+            console.log(categories);
+        });
+    ```
+- product(&lt;productno&gt;)
+    ```javascript
+    // Get a specific brand.
+    ffe.product('11446-031-07')
+        .then((product) => {
+            console.log(product);
+        });
+    ```
 - products()
+    ```javascript
+    // Get a list of brands.
+    ffe.products()
+        .then((products) => {
+            console.log(products);
+        });
+    ```
