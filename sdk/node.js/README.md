@@ -35,7 +35,7 @@ ffe.brand('simms')
     .then((brand) => {
         console.log(brand);
     });
-```
+    ```
 - brands()
     ```javascript
 // Get a list of brands.
@@ -43,7 +43,7 @@ ffe.brands()
     .then((brands) => {
         console.log(brands);
     });
-```
+    ```
 - category(<categoryno>)
 - categories()
 - product(<productno>)
