@@ -29,15 +29,15 @@ That's it!
 ## Methods
 
 - brand(&lt;brandno&gt;)
-    Get a specific brand.
     ```javascript
-        ffe.brand('simms')
-            .then((brand) => {
-                console.log(brand);
-            });
-    ```
+// Get a specific brand.
+ffe.brand('simms')
+    .then((brand) => {
+        console.log(brand);
+    });
+```
 - brands()
-```javascript
+    ```javascript
 // Get a list of brands.
 ffe.brands()
     .then((brands) => {
