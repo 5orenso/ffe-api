@@ -30,19 +30,19 @@ That's it!
 
 - brand(&lt;brandno&gt;)
     ```javascript
-// Get a specific brand.
-ffe.brand('simms')
-    .then((brand) => {
-        console.log(brand);
-    });
+    // Get a specific brand.
+    ffe.brand('simms')
+        .then((brand) => {
+            console.log(brand);
+        });
     ```
 - brands()
     ```javascript
-// Get a list of brands.
-ffe.brands()
-    .then((brands) => {
-        console.log(brands);
-    });
+    // Get a list of brands.
+    ffe.brands()
+        .then((brands) => {
+            console.log(brands);
+        });
     ```
 - category(<categoryno>)
 - categories()
