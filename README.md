@@ -15,6 +15,7 @@ You can create an API token on the DealerWeb under My Account.
 
 - [Client side Javascript](./sdk/javascript/)
 - [Server side Javascript (Node.js)](./sdk/node.js/)
+    `$ npm install ffe-api-sdk --save`
 
 
 ## Code examples
