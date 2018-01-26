@@ -1,0 +1,18 @@
+{
+  "name": "ffe-api-sdk",
+  "version": "1.0.0",
+  "description": "Flyfish Europe API SDK",
+  "main": "ffe.js",
+  "homepage": "https://github.com/5orenso/ffe-api/tree/master/sdk/node.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/5orenso/ffe-api/tree/master/sdk/node.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Øistein Sørensen",
+    "email": "sorenso@gmail.com"
+  }
+}
