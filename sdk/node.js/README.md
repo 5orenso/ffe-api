@@ -29,15 +29,20 @@ That's it!
 ## Methods
 
 - brand(&lt;brandno&gt;)
+    Get a specific brand.
     ```javascript
-        ffe.brand()
+        ffe.brand('simms')
             .then((brand) => {
                 console.log(brand);
             });
     ```
 - brands()
+    Get a list of brands.
     ```javascript
-        ffe.brands();
+        ffe.brands()
+            .then((brands) => {
+                console.log(brands);
+            });
     ```
 - category(<categoryno>)
 - categories()
