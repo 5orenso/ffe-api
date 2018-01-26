@@ -37,13 +37,13 @@ That's it!
             });
     ```
 - brands()
-    Get a list of brands.
-    ```javascript
-        ffe.brands()
-            .then((brands) => {
-                console.log(brands);
-            });
-    ```
+```javascript
+// Get a list of brands.
+ffe.brands()
+    .then((brands) => {
+        console.log(brands);
+    });
+```
 - category(<categoryno>)
 - categories()
 - product(<productno>)
