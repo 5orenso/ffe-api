@@ -76,9 +76,6 @@ class FFE {
                 }
             };
             const req = this.https.request(options, (res) => {
-                if (res.statusCode < 200 || res.statusCode > 299) {
-                    reject(new Error('Failed to load page, status code: ' + res.statusCode));
-                }
                 const body = [];
                 res.on('data', (chunk) => body.push(chunk.toString('utf8')));
                 res.on('end', () => {
