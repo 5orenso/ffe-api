@@ -1,6 +1,6 @@
 {
   "name": "ffe-api-sdk",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Flyfish Europe API SDK",
   "main": "ffe.js",
   "homepage": "https://github.com/5orenso/ffe-api",
@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/5orenso/ffe-api"
   },
+  "tonicExampleFilename": "demo.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
