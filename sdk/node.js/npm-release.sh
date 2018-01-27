@@ -24,7 +24,7 @@ GITHUB_REPO_URL=$(jq -r '.repository.url' package.json | perl -pe 's|https://git
 GITHUB_REPO_API_ENDPOINT="/releases?access_token=${GITHUB_TOKEN}"
 GITHUB_FINAL_URL=${GITHUB_REPO_API_URL}${GITHUB_REPO_URL}${GITHUB_REPO_API_ENDPOINT}
 
-echo "+ Doing a github.com release of version ${NPM_VERSION}"
+echo "+ Doing a github.com release of version ${NPM_VERSION} ${GITHUB_FINAL_URL}"
 GITHUB_RESPONSE=$(echo ${JSON} | curl ${GITHUB_FINAL_URL} --data-binary @- 2>/dev/null)
 echo $GITHUB_RESPONSE | jq '.'
 

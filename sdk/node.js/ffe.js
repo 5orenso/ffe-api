@@ -83,7 +83,11 @@ class FFE {
                     try {
                         data = JSON.parse(body.join(''));
                     } catch (err) {
-                        reject(err);
+                        data = {
+                            'code': 500,
+                            'error': 'Invalid JSON from server',
+                            'message': body.join(''),
+                        }
                     }
                     resolve(data);
                 });

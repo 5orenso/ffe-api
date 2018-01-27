@@ -1,12 +1,12 @@
 {
   "name": "ffe-api-sdk",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Flyfish Europe API SDK",
   "main": "ffe.js",
-  "homepage": "https://github.com/5orenso/ffe-api/",
+  "homepage": "https://github.com/5orenso/ffe-api",
   "repository": {
     "type": "git",
-    "url": "https://github.com/5orenso/ffe-api/"
+    "url": "https://github.com/5orenso/ffe-api"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
