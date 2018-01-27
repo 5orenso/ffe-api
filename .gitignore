@@ -3,3 +3,8 @@ test-localhost.html
 test.html
 test.js
 example/node.js/simple.js
+
+
+sdk/node.js/npm-debug.log
+
+demo/*
