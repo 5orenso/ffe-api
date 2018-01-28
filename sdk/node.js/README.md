@@ -4,7 +4,8 @@ Flyfish Europe REST API SDK for Node.js
 
 ## Getting started
 
-Install library:
+
+Install library from our [NPM package](https://www.npmjs.com/package/ffe-api-sdk):
 ```bash
 $ npm install ffe-api-sdk --save
 ```
