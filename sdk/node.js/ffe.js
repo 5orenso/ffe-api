@@ -36,7 +36,6 @@ class FFE {
             }
         }
         if (queryString.length > 0) {
-            console.log('queryString', `?${queryString.join('&')}`);
             return `?${queryString.join('&')}`;
         }
         return '';
