@@ -1,6 +1,8 @@
 'use strict';
 
 const https = require('https');
+const http = require('http');
+const querystring = require('querystring');
 
 class FFE {
     constructor(jwtToken, options) {
@@ -15,8 +17,8 @@ class FFE {
             if (options.port) {
                 this.port = options.port;
             }
-            if (options.https) {
-                this.https = options.https;
+            if (!options.https) {
+                this.https = http;
             }
         }
     }
@@ -38,6 +40,10 @@ class FFE {
             return `?${queryString.join('&')}`;
         }
         return '';
+    }
+
+    login(email, pass) {
+        return this.getEndpoint(`/login/`, 'POST', { email, pass });
     }
 
     brand(brandno) {
@@ -64,17 +70,23 @@ class FFE {
         return this.getEndpoint(`/api/products/${this.makeQueryString(opt)}`);
     }
 
-    getEndpoint(url) {
+    getEndpoint(url, method = 'GET', body) {
         return new Promise((resolve, reject) => {
             const options = {
                 hostname: this.hostname,
                 port: this.port,
                 path: url,
-                method: 'GET',
+                method,
                 headers: {
                     Authorization: `Bearer ${this.jwtToken}`
                 }
             };
+            let postData;
+            if (typeof body === 'object') {
+                postData = querystring.stringify(body);
+                options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                options.headers['Content-Length'] = Buffer.byteLength(postData);
+            }
             const req = this.https.request(options, (res) => {
                 const body = [];
                 res.on('data', (chunk) => body.push(chunk.toString('utf8')));
@@ -95,6 +107,9 @@ class FFE {
             req.on('error', (error) => {
                 reject(new Error(error));
             });
+            if (typeof body === 'object') {
+                req.write(postData);
+            }
             req.end();
         });
     }

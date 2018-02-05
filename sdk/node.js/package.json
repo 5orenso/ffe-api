@@ -15,5 +15,7 @@
   "author": {
     "name": "Øistein Sørensen",
     "email": "sorenso@gmail.com"
+  },
+  "dependencies": {
   }
 }
