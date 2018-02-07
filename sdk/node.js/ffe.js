@@ -69,6 +69,10 @@ class FFE {
         return this.getEndpoint(`/api/products/${this.makeQueryString(opt)}`);
     }
 
+    posAddSale(opt) {
+        return this.getEndpoint('/api/pos/sales/', 'POST', opt);
+    }
+
     getEndpoint(url, method = 'GET', body) {
         return new Promise((resolve, reject) => {
             const options = {
@@ -95,9 +99,13 @@ class FFE {
                         data = JSON.parse(body.join(''));
                     } catch (err) {
                         data = {
-                            'code': 500,
-                            'error': 'Invalid JSON from server',
-                            'message': body.join(''),
+                            code: 500,
+                            error: 'Invalid JSON from server',
+                            message: body.join(''),
+                            hostname: this.hostname,
+                            port: this.port,
+                            path: url,
+                            method,
                         }
                     }
                     resolve(data);
