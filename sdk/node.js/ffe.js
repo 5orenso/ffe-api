@@ -72,6 +72,16 @@ class FFE {
     posAddSale(opt) {
         return this.getEndpoint('/api/pos/sales/', 'POST', opt);
     }
+    posSales(opt) {
+        return this.getEndpoint('/api/pos/sales/');
+    }
+
+    posAddProduct(opt) {
+        return this.getEndpoint('/api/pos/products/', 'POST', opt);
+    }
+    posProducts(opt) {
+        return this.getEndpoint(`/api/pos/products/${this.makeQueryString(opt)}`);
+    }
 
     getEndpoint(url, method = 'GET', body) {
         return new Promise((resolve, reject) => {
