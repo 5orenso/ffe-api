@@ -28,15 +28,17 @@ Returns json data about a products.
     None.
 - Optional:
 
-| Param     | Datatype     | Example value | Description
-|-----------|--------------|---------------|---------------------------------------
-| limit     | integer      | 50            | Number of products you want in your result data.
-| offset    | integer      | 50            | Pagination offset.
-| brand     | alphanumeric | simms         | Filter by brand. Ie. Simms, Scott, WW-l
-| maingroup | integer      | 101           | Filter by maingroupno. Ie. Simms Waders = 101
-| intgroup  | integer      | 1033          | Filter by maingroupno. Ie. Fall headwear = 1033
-| gtin      | integer      | 782420002818  | Filter by globalTradeItemNumber. Ie. 782420002818 = Loon Up & Down Kit.
-| unique    | boolean      | true          | Group products into unique products with size and colors as options. Ie. G4Z® Stockingfoot Sizes: [S, M, L, XXL], Color: ['Greystone'].
+| Param       | Datatype     | Example value | Description
+|-------------|--------------|---------------|---------------------------------------
+| limit       | integer      | 50            | Number of products you want in your result data.
+| offset      | integer      | 50            | Pagination offset.
+| brand       | alphanumeric | simms         | Filter by brand. Ie. Simms, Scott, WW-l
+| maingroup   | integer      | 101           | Filter by maingroupno. Ie. Simms Waders = 101
+| intgroup    | integer      | 1033          | Filter by maingroupno. Ie. Fall headwear = 1033
+| gtin        | integer      | 782420002818  | Filter by globalTradeItemNumber. Ie. 782420002818 = Loon Up & Down Kit.
+| articleNoIn | alphanumeric | 12023-016-07,10328-033-20 | Filter by articleno list. Ie. 12023-016-07,10328-033-20
+| search      | alphanumeric | simms waders  | Search for products. Ie. 'Simms waders'
+| unique      | boolean      | true          | Group products into unique products with size and colors as options. Ie. G4Z® Stockingfoot Sizes: [S, M, L, XXL], Color: ['Greystone'].
 
 
 ### Data Params
