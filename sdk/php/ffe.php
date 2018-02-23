@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Access the FlyfishEurope dealer API
+ *
+ */
 class FFE {
     private $hostname;
     private $port;
@@ -7,6 +11,14 @@ class FFE {
     private $https;
     private $curlInfo;
 
+    /**
+     * @param string $jwtToken From https://dealer.flyfisheurope.com/myaccount
+     * @param object $options Optional.
+     *  $options->hostname: API server location, default dealer.flyfisheurope.com.<br>
+     *  $options->port: API server port, default 443.<br>
+     *  $options->https: Is the API server running on https? default 1.<br>
+     *  $options->debug: output debug information about execution of API, default 0.<br>
+     */
     public function __construct($jwtToken, $options = null) {
         $this->hostname = 'dealer.flyfisheurope.com';
         $this->port = 443;
@@ -30,6 +42,12 @@ class FFE {
         }
     }
 
+    /**
+     * @param string $email Your login $email for dealer.flyfisheurope.com
+     * @param string $pass Password for your account
+     * @return object {status: 200, apiToken: 'tokenForApi', message: 'OK'}
+     *  or {status: 401, message: 'Login failed'}
+     */
     public function login($email, $pass) {
         $opt = new StdClass();
         $opt->email = $email;
@@ -37,46 +55,101 @@ class FFE {
         return $this->post('/login/', $opt);
     }
 
+    /**
+     * Get all brands available for your dealer
+     * @return array [[brandno=>'simms', sort=>1,name=>'Simms']]
+     */
     public function brands() {
          return $this->get('/api/brands/');
     }
 
+    /**
+     * Get a single brand
+     * @param string $brandno brand['brandno'] value
+     */
     public function brand($brandno) {
         return $this->get('/api/brands/' . urlencode($brandno));
     }
 
-    public function category($categoryno) {
-        return $this->get('/api/categories/' . urlencode($categoryno));
-    }
-
+    /**
+     * Get all categories
+     * @param object $opt
+     *  $opt->brand Optional, brandno, default simms.<br>
+     *  $opt->level Optional, default main.<br>
+     *  $opt->parent Optional, default 0
+     * @return array [[categoryno=>101, name=>'Simms wader', level=>'main', parent=>'',sort=>1]]
+     */
     public function categories($opt = null) {
         return $this->get('/api/categories/' . $this->makeQueryString($opt));
     }
 
+    /**
+     * Get a single category
+     * @param int $categoryno
+     * @see FFE::categories()
+     */
+    public function category($categoryno) {
+        return $this->get('/api/categories/' . urlencode($categoryno));
+    }
+
+    /**
+     * @param object $opt
+     *  $opt->limit int Optional, default 100<br>
+     *  $opt->offset int Optional, default 0<br>
+     *  $opt->brand string brandno<br>
+     *  $opt->maingroup int Optional<br>
+     *  $opt->intgroup int Optioanl<br>
+     *  $opt->gtin Optional string Global Trade Item Number<br>
+     *  $opt->search string Optional Search within products<br>
+     *  $opt->unique string Optional, only return unique products<br>
+     * @return array [[articleno=>'123-456-789',brand....]]
+     */
+    public function products($opt = null) {
+        return $this->get('/api/products/' . $this->makeQueryString($opt));
+    }
+
+    /**
+     * Get a single product
+     * @param string articleno
+     * @return array [articleno=>'123-456-789',brand....]
+     */
     public function product($articleno) {
         return $this->get('/api/products/' . urlencode($articleno));
     }
 
-    public function products($opt) {
-        return $this->get('/api/products/' . $this->makeQueryString($opt));
-    }
-
+    /**
+     * @throws Exception Not implemented
+     */
     public function posAddSale($opt) {
         throw new Exception('Not implemented');
     }
+
+    /**
+     * @throws Exception Not implemented
+     */
     public function posSales() {
         throw new Exception('Not implemented');
     }
 
+    /**
+     * @throws Exception Not implemented
+     */
     public function posAddProduct($opt) {
         throw new Exception('Not implemented');
     }
 
+    /**
+     * @throws Exception Not implemented
+     */
     public function posProducts($opt) {
         throw new Exception('Not implemented');
     }
 
-    public function getLastCurlInfo() {
+    /**
+     * Debug information about the last CURL request
+     * @return array From curl_getinfo()
+     */
+    public function lastCurlInfo() {
         return $this->curlInfo;
     }
 
