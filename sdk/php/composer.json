@@ -1,0 +1,7 @@
+{
+    "name": "ffe/api",
+    "description": "API access to FlyfishEurope",
+    "require": {
+        "php": "^5.0"
+    }
+}
