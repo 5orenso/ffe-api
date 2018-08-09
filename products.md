@@ -100,6 +100,43 @@ None.
     }
 }
 ```
+
+#### Special field comments
+
+##### availability
+
+```
+if (typeof availability === 'string') {
+    if (availability.match(/yes/i)) {
+        // Product is in stock. We do not display how many we have in stock.
+        // Example value: “yes”
+        return 'green';
+    }
+    if (availability.match(/no/i)) {
+        // Product is not in stock.
+        // Example value: “no”
+        return 'red';
+    }
+    if (availability.match(/\d{4}-\d{2}-\d{2}/)) {
+        // Product is not in stock but it has been ordered and is on it’s way.
+        // Example values: “2018-10-31”
+        return 'yellow';
+    }
+    if (availability.match(/^\d+/)) {
+        // Product is in stock and we have the current number of products.
+        // Example values: “10+”, “20+”
+        return 'green';
+    }
+}
+if (typeof availability === 'number') {
+    // Product is in stock and we have the current number of products.
+    // Same as above but with a valid number.
+    // Example values: 1, 2, 3, 4, 5
+    return 'success';
+}
+```
+
+
 ### Error Response:
 
   * **Code:** 401 UNAUTHORIZED   
