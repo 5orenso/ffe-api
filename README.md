@@ -1,17 +1,17 @@
 # Flyfish Europe JSON REST API
 
-#### Introduction
+## Introduction
 
 This API is for Flyfish Europe Dealers with access to our DealerWeb.
 
 
-#### Overview
+## Overview
 
 With this API you will have access to all our brands, categories and products. You should be able to integrate all our
 products into your web shop or point of sale system with ease.
 
 
-#### Authentication
+## Authentication
 
 Preferred way of authentication is with an API token. You can create tokens inside the DealerWeb. Tokens can be of 2
 different kinds:
@@ -26,7 +26,7 @@ Authorization: Bearer <your jwt token>
 ```
 
 
-#### Error Codes
+## Error Codes
 
 We use standard HTTP codes in our responses.
 
@@ -40,14 +40,14 @@ Example of the mos† common codes are:
 [All HTTP status codes can be found on Wikipedia.](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
 
 
-#### Rate limit
+## Rate limit
 
 Currently we do not have rate limiting activated, but we will activate and throttle over active usage without any
 further notice. Status code of throttling is:
 - __429__ Too many requests. Slow down your pace.
 
 
-## API endpoints
+# API endpoints
 
 - [/api/brands/](brands.md)
 - [/api/categories/](categories.md)
@@ -56,7 +56,7 @@ further notice. Status code of throttling is:
 You can create an API token on the DealerWeb under My Account.
 
 
-## SDKs
+# SDKs
 
 - [Client side Javascript](./sdk/javascript/)
 - [Server side Javascript (Node.js)](./sdk/node.js/)
@@ -66,12 +66,12 @@ You can create an API token on the DealerWeb under My Account.
     Test it online at RunKit: https://npm.runkit.com/ffe-api-sdk   
 
 
-## Code examples
+# Code examples
 
 - [Example code](./example/)
 
 
-## Other resources
+# Other resources
 
 - [Consumer web](https://flyfisheurope.com/)
 - [Dealer web](https://dealer.flyfisheurope.com/)
