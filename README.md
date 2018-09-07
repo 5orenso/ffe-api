@@ -1,6 +1,51 @@
-# FFE API documentation
+# Flyfish Europe JSON REST API
 
-Flyfish Europe JSON REST API.
+#### Introduction
+
+This API is for Flyfish Europe Dealers with access to our DealerWeb.
+
+
+#### Overview
+
+With this API you will have access to all our brands, categories and products. You should be able to integrate all our
+products into your web shop or point of sale system with ease.
+
+
+#### Authentication
+
+Preferred way of authentication is with an API token. You can create tokens inside the DealerWeb. Tokens can be of 2
+different kinds:
+
+- __Server side token__ should be used only on your servers where no one but you have access. It's like a password to
+your data.
+- __Client side token__ should be used inside client side applications like a javascript component on a webpage.
+
+Your token is sent to our servers inside the HTTP request headers:
+```
+Authorization: Bearer <your jwt token>
+```
+
+
+#### Error Codes
+
+We use standard HTTP codes in our responses.
+
+Example of the mos† common codes are:
+- __200__ for successful GET requests.
+- __201__ for new inserts.
+- __202__ for updates.
+- __401__ for unauthorized request.
+- __401__ for forbidden request.
+
+[All HTTP status codes can be found on Wikipedia.](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+
+
+#### Rate limit
+
+Currently we do not have rate limiting activated, but we will activate and throttle over active usage without any
+further notice. Status code of throttling is:
+- __429__ Too many requests. Slow down your pace.
+
 
 ## API endpoints
 

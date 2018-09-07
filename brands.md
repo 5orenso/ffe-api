@@ -4,10 +4,11 @@ Returns json data about a brands.
 
 ### URL
 
-| URL                         | Method | Description
-|-----------------------------|--------|----------------------------
-| /api/brands/                | GET    | Get a list of brands.
-| /api/brands/:brandno        | GET    | Get a specific brand.
+| URL                         | Method  | Description
+|-----------------------------|---------|----------------------------
+| /api/brands/                | OPTIONS | CORS(Cross-Origin Resource Sharing) request.
+| /api/brands/                | GET     | Get a list of brands.
+| /api/brands/:brandno        | GET     | Get a specific brand.
 
 
 ### URL Params

@@ -4,10 +4,11 @@ Returns json data about a products.
 
 ### URL
 
-| URL                        | Method | Description
-|----------------------------|--------|----------------------------
-| /api/products/             | GET    | Get a list of products.
-| /api/products/:articleno   | GET    | Get a specific product.
+| URL                        | Method  | Description
+|----------------------------|---------|----------------------------
+| /api/products/             | OPTIONS | CORS(Cross-Origin Resource Sharing) request.
+| /api/products/             | GET     | Get a list of products.
+| /api/products/:articleno   | GET     | Get a specific product.
 
 
 ### URL Params
@@ -28,17 +29,22 @@ Returns json data about a products.
     None.
 - Optional:
 
-| Param       | Datatype     | Example value | Description
-|-------------|--------------|---------------|---------------------------------------
-| limit       | integer      | 50            | Number of products you want in your result data.
-| offset      | integer      | 50            | Pagination offset.
-| brand       | alphanumeric | simms         | Filter by brand. Ie. Simms, Scott, WW-l
-| maingroup   | integer      | 101           | Filter by maingroupno. Ie. Simms Waders = 101
-| intgroup    | integer      | 1033          | Filter by maingroupno. Ie. Fall headwear = 1033
-| gtin        | integer      | 782420002818  | Filter by globalTradeItemNumber. Ie. 782420002818 = Loon Up & Down Kit.
+| Param       | Datatype     | Example value    | Description
+|-------------|--------------|------------------|---------------------------------------
+| limit       | integer      | 50               | Number of products you want in your result data.
+| offset      | integer      | 50               | Pagination offset.
+| brand       | alphanumeric | simms            | Filter by brand. Ie. Simms, Scott, WW-l
+| maingroup   | alphanumeric | simms headwear   | Filter by maingroupname. Ie. 'simms headwear'
+| intgroup    | alphanumeric | fall headwear    | Filter by intgroupname. Ie. 'fall headwear'
+| subgroup    | alphanumeric | visor beanie     | Filter by subgroupname. Ie. 'visor beanie'
+| mainCat     | integer      | 101              | Filter by maingroupno. Ie. Simms Waders = 101
+| intCat      | integer      | 1033             | Filter by intgroup. Ie. Fall headwear = 1033
+| subCat      | integer      | 1033             | Filter by subgroup. Ie. Visor Beanie = 10096
+| gtin        | integer      | 782420002818     | Filter by globalTradeItemNumber. Ie. 782420002818 = Loon Up & Down Kit.
 | articleNoIn | alphanumeric | 12023-016-07,10328-033-20 | Filter by articleno list. Ie. 12023-016-07,10328-033-20
-| search      | alphanumeric | simms waders  | Search for products. Ie. 'Simms waders'
-| unique      | boolean      | true          | Group products into unique products with size and colors as options. Ie. G4Z® Stockingfoot Sizes: [S, M, L, XXL], Color: ['Greystone'].
+| search      | alphanumeric | simms waders     | Search for products. Ie. 'Simms waders'
+| unique      | boolean      | true             | Group products into unique products with size and colors as options. Ie. G4Z® Stockingfoot Sizes: [S, M, L, XXL], Color: ['Greystone'].
+| isNew       | integer      | 1                | Filter by new products.
 
 
 ### Data Params

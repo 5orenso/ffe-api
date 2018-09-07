@@ -47,7 +47,7 @@ That's it!
     ```
 - category(&lt;catgeoryno&gt;)
     ```javascript
-    // Get a specific brand.
+    // Get a specific category.
     ffe.category(1004)
         .then((category) => {
             console.log(category);
@@ -55,7 +55,7 @@ That's it!
     ```
 - categories()
     ```javascript
-    // Get a list of brands.
+    // Get a list of categories.
     ffe.categories()
         .then((categories) => {
             console.log(categories);
@@ -63,7 +63,7 @@ That's it!
     ```
 - product(&lt;productno&gt;)
     ```javascript
-    // Get a specific brand.
+    // Get a specific product.
     ffe.product('11446-031-07')
         .then((product) => {
             console.log(product);
@@ -71,7 +71,15 @@ That's it!
     ```
 - products()
     ```javascript
-    // Get a list of brands.
+    // Get a list of products.
+    ffe.products()
+        .then((products) => {
+            console.log(products);
+        });
+    ```
+- products({ isNew: 1 })
+    ```javascript
+    // Get a list of new products.
     ffe.products()
         .then((products) => {
             console.log(products);

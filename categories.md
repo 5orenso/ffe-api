@@ -4,10 +4,11 @@ Returns json data about a categories.
 
 ### URL
 
-| URL                         | Method | Description
-|-----------------------------|--------|----------------------------
-| /api/categories/            | GET    | Get a list of categories.
-| /api/categories/:categoryno | GET    | Get a specific category.
+| URL                         | Method  | Description
+|-----------------------------|---------|----------------------------
+| /api/categories/            | OPTIONS | CORS(Cross-Origin Resource Sharing) request.
+| /api/categories/            | GET     | Get a list of categories.
+| /api/categories/:categoryno | GET     | Get a specific category.
 
 
 ### URL Params
