@@ -51,8 +51,14 @@ var FFE = (function () {
     function getProduct(articleno) {
         fetchApi(`${URL}/products/${articleno}`)
             .then((data) => {
+                const product = document.querySelector('#product');
+                product.style.display = 'block';
                 const productImage = document.querySelector('#productImage');
-                productImage.src = `${IMAGE_DOMAIN}${data.images.medium}`;
+                let img = '';
+                if (data.images.medium) {
+                    img = data.images.medium;
+                }
+                productImage.src = img;
                 const productName = document.querySelector('#productName');
                 productName.innerHTML = data.nameDisplay || data.name;
                 const updateFields = ['brand', 'itemCategory', 'retailPrice', 'color', 'size', 'availability', 'retailCurrency',
@@ -83,9 +89,11 @@ var FFE = (function () {
             limit = $limit;
             offset = $offset;
         }
-        fetchApi(`${URL}/products/?brand=${brand}&maingroup=${maingroup}&limit=${limit}&offset=${offset}&unique=${$unique}`)
+        fetchApi(`${URL}/products/?brand=${brand}&mainCat=${maingroup}&limit=${limit}&offset=${offset}&unique=${$unique}`)
             .then((data) => {
                 if (Array.isArray(data)) {
+                    const product = document.querySelector('#product');
+                    product.style.display = 'none';
                     const productList = document.querySelector('#productList');
                     productList.innerHTML = '';
                     for (let i = 0, l = data.length; i < l; i += 1) {
@@ -111,10 +119,14 @@ var FFE = (function () {
                             availabilityText = String(prod.availability);
                             availabilityClass = 'yes';
                         }
+                        let img = '';
+                        if (prod.images.small) {
+                            img = `<img src="${prod.images.small}">`
+                        }
                         const elChild = document.createElement('div');
                         elChild.setAttribute('class', 'product');
                         elChild.innerHTML = `<a href="#${prod.brand}:${prod.maingroupno}:${prod.articleno}" onclick="FFE.getProduct('${prod.articleno}');">
-                            <img src="${IMAGE_DOMAIN}${prod.images.small}"></a>
+                            ${img}</a>
                             <div class="info">
                                 <span class="name"><a href="#${prod.brand}:${prod.maingroupno}:${prod.articleno}" onclick="FFE.getProduct('${prod.articleno}');">${prod.name}</a></span>
                                 <span class="category">${prod.mainCategory || ''} / ${prod.intermediateCategory || ''}</span><br clear="all">
@@ -150,6 +162,10 @@ var FFE = (function () {
         fetchApi(`${URL}/categories/?brand=${brand}&limit=${limit}&offset=${offset}`)
             .then((data) => {
                 if (Array.isArray(data)) {
+                    const product = document.querySelector('#product');
+                    product.style.display = 'none';
+                    const productlist = document.querySelector('#productList');
+                    productlist.innerHTML = '';
                     const categoryList = document.querySelector('#categoryList');
                     categoryList.innerHTML = '';
                     for (let i = 0, l = data.length; i < l; i += 1) {
@@ -157,7 +173,7 @@ var FFE = (function () {
                         const elChild = document.createElement('a');
                         elChild.innerHTML = category.name;
                         elChild.setAttribute('href', `#${brand}:${category.categoryno}`);
-                        elChild.setAttribute('onclick', `FFE.getProductList('', ${category.categoryno});`);
+                        elChild.setAttribute('onclick', `FFE.getProductList('${brand}', ${category.categoryno});`);
                         categoryList.appendChild(elChild);
                         // Add separator
                         const elSep = document.createElement('span');
