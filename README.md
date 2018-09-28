@@ -26,9 +26,9 @@ Authorization: Bearer <your jwt token>
 ```
 
 
-## Error Codes
+## HTTP Status Codes
 
-We use standard HTTP codes in our responses.
+We use standard HTTP status codes in our responses.
 
 Example of the mos† common codes are:
 - __200__ for successful GET requests.
