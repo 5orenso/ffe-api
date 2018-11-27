@@ -79,8 +79,20 @@ class FFE {
     posAddProduct(opt) {
         return this.getEndpoint('/api/pos/products/', 'POST', opt);
     }
-    posProducts(opt) {
-        return this.getEndpoint(`/api/pos/products/${this.makeQueryString(opt)}`);
+    posEditProduct(opt, params) {
+        let id = '';
+        if (typeof params === 'object' && typeof params.id !== 'undefined') {
+            id = params.id;
+            return this.getEndpoint(`/api/pos/products/${id}`, 'PUT', opt);
+        }
+        return false;
+    }
+    posProducts(opt, params) {
+        let id = '';
+        if (typeof params === 'object' && typeof params.id !== 'undefined') {
+            id = params.id;
+        }
+        return this.getEndpoint(`/api/pos/products/${id}${this.makeQueryString(opt)}`);
     }
 
     getEndpoint(url, method = 'GET', body) {
@@ -96,9 +108,9 @@ class FFE {
             };
             let postData;
             if (typeof body === 'object') {
-                postData = querystring.stringify(body);
-                options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                options.headers['Content-Length'] = Buffer.byteLength(postData);
+                postData = JSON.stringify(body);
+                options.headers['Content-Type'] = 'application/json';
+                options.headers['Content-Length'] = postData.length;
             }
             const req = this.https.request(options, (res) => {
                 const body = [];
