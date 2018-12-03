@@ -52,6 +52,10 @@ class FFE {
     brands() {
         return this.getEndpoint('/api/brands/');
     }
+    
+    dealerInfo() {
+        return this.getEndpoint('/api/dealers/info');
+    }
 
     category(categoryno) {
         return this.getEndpoint(`/api/categories/${categoryno}`);
