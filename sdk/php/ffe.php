@@ -52,7 +52,11 @@ class FFE {
         $opt = new StdClass();
         $opt->email = $email;
         $opt->pass = $pass;
-        return $this->post('/login/', $opt);
+        $data = $this->post('/login/', $opt);
+        if ($data['status'] === 200) {
+            $this->jwtToken = $data['apiToken'];
+        }
+        return $data;
     }
 
     /**
