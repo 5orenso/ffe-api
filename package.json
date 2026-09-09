@@ -1,0 +1,15 @@
+{
+  "name": "ffe-api-docs-tooling",
+  "private": true,
+  "description": "Tooling for the Flyfish Europe API documentation (spec lint, generators, probes)",
+  "scripts": {
+    "lint:spec": "redocly lint openapi.yaml",
+    "gen:reference": "node scripts/gen-reference.js",
+    "gen:postman": "node scripts/gen-postman.js",
+    "test": "node --test scripts/gen-reference.test.js scripts/gen-postman.test.js"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.25.0",
+    "js-yaml": "^4.1.0"
+  }
+}

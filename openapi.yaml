@@ -1,0 +1,2825 @@
+openapi: 3.0.3
+info:
+  title: Flyfish Europe Dealer API
+  version: "1.0.0"
+  description: |
+    JSON REST API for Flyfish Europe dealers with DealerWeb access.
+    Create an API token in DealerWeb under My Account and send it as
+    `Authorization: Bearer <token>` on every request.
+servers:
+  - url: https://dealer.flyfisheurope.com
+    description: Production (DealerWeb)
+tags:
+  - name: login
+  - name: brands
+  - name: categories
+  - name: products
+  - name: baskets
+  - name: dealers
+  - name: pos-sales
+  - name: pos-products
+paths:
+  /login/:
+    post:
+      tags: [login]
+      operationId: login
+      x-verified: false
+      summary: Exchange email and password for an API token
+      description: |
+        Only needed if you do not want to create a token in DealerWeb.
+        The returned apiToken is used as the Bearer token for all other calls.
+        Not yet verified against the live API; request encoding and response examples come from the PHP and Node SDKs.
+      security: []
+      x-sdk-node: "ffe.login('you@example.com', 'password')"
+      x-sdk-php: "$ffe->login('you@example.com', 'password')"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              example:
+                status: 200
+                apiToken: "<jwt>"
+                message: OK
+        "401":
+          description: Login failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                status: 401
+                message: Login failed
+  /api/brands/:
+    get:
+      tags: [brands]
+      operationId: listBrands
+      summary: List all brands available to your dealer account
+      description: |
+        Supports CORS preflight (OPTIONS): allowed methods GET, HEAD, PUT, PATCH, POST, DELETE.
+        The live OPTIONS probe did not return an access-control-allow-headers value
+        (no Access-Control-Request-Headers was sent on the preflight request).
+      x-sdk-node: "ffe.brands()"
+      x-sdk-php: "$ffe->brands()"
+      responses:
+        "200":
+          description: Array of brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Brand"
+              example:
+                - id: 2
+                  brandno: simms
+                  sort: 10
+                  name: Simms
+                  fullName: Simms
+                  count: 2457
+                  countPresale: 514
+                  updatedDate: "2023-06-20T12:33:51.583Z"
+                  showOnConsumerWeb: 1
+                  showOnDealerWeb: 1
+                  countNew: 1095
+                  countPsNew: 163
+                  countSpring: 1459
+                  countFall: 1163
+                  countPsSpring: 30
+                  countPsFall: 484
+                  countNewSpring: 498
+                  countNewFall: 597
+                  countPsNewSpring: 0
+                  countPsNewFall: 163
+                - id: 68
+                  brandno: ahrex
+                  sort: 15
+                  name: Ahrex
+                  fullName: Ahrex
+                  count: 597
+                  countPresale: 609
+                  updatedDate: "2023-10-17T11:09:47.679Z"
+                  showOnConsumerWeb: 1
+                  showOnDealerWeb: 1
+                  countNew: 35
+                  countPsNew: 12
+                  countSpring: 609
+                  countFall: 0
+                  countPsSpring: 609
+                  countPsFall: 0
+                  countNewSpring: 35
+                  countNewFall: 0
+                  countPsNewSpring: 12
+                  countPsNewFall: 0
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/brands/{brandno}:
+    get:
+      tags: [brands]
+      operationId: getBrand
+      summary: Get one brand
+      x-sdk-node: "ffe.brand('simms')"
+      x-sdk-php: "$ffe->brand('simms')"
+      parameters:
+        - name: brandno
+          in: path
+          required: true
+          schema:
+            type: string
+          example: simms
+      responses:
+        "200":
+          description: |
+            The brand. An unknown brandno also returns HTTP 200 (not 404), but with
+            an empty object body — see the unknownBrandno example.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+              examples:
+                simms:
+                  summary: Known brandno
+                  value:
+                    id: 2
+                    brandno: simms
+                    sort: 10
+                    name: Simms
+                    fullName: Simms
+                    count: 2457
+                    countPresale: 514
+                    updatedDate: "2023-06-20T12:33:51.583Z"
+                    showOnConsumerWeb: 1
+                    showOnDealerWeb: 1
+                    countNew: 1095
+                    countPsNew: 163
+                    countSpring: 1459
+                    countFall: 1163
+                    countPsSpring: 30
+                    countPsFall: 484
+                    countNewSpring: 498
+                    countNewFall: 597
+                    countPsNewSpring: 0
+                    countPsNewFall: 163
+                unknownBrandno:
+                  summary: Unknown brandno returns an empty object
+                  value: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/categories/:
+    get:
+      tags: [categories]
+      operationId: listCategories
+      summary: List categories
+      description: |
+        Without a `level` filter, this dealer account's response is identical (same 13
+        items, same order) to `level=main` and to `brand=simms`: every category this
+        token can see by default is a main-level Simms category. Intermediate and sub
+        categories are only returned when `level=intermediate` or `level=sub` is
+        requested explicitly.
+      x-sdk-node: "ffe.categories({ brand: 'simms', level: 'main' })"
+      x-sdk-php: "$ffe->categories((object) ['brand' => 'simms', 'level' => 'main'])"
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+          description: |
+            Maximum number of categories to return. The default of 100 is inferred:
+            `level=intermediate` (170+ candidate categories) returned exactly 100 items
+            with no limit given, a round number consistent with a page-size cap, while
+            `level=sub` (57 total) and the unfiltered/`level=main` call (13 total) both
+            came back under 100 and were not capped.
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+          description: |
+            Pagination offset into the result list (ordered by `sort`). Verified:
+            `limit=2&offset=0` returned categoryno 101, 102; `limit=2&offset=2`
+            returned categoryno 104, 105 - the next two items in `sort` order.
+        - name: brand
+          in: query
+          schema: { type: string }
+          example: simms
+          description: |
+            Intended to filter by brand identifier (matches Brand.brandno). Not
+            conclusively verified: `brand=simms` returned results byte-identical to
+            the unfiltered list (same 13 categories), but every category this dealer
+            account can see is already brand simms, so this probe cannot distinguish
+            "brand filters and simms matched everything" from "brand has no effect".
+            Case-sensitivity was not tested.
+        - name: level
+          in: query
+          schema:
+            type: string
+            enum: [main, intermediate, sub]
+          description: |
+            main returned 13 categories (parent: null), intermediate returned 100
+            (likely capped by the default limit - see limit), sub returned 57, all
+            with a non-null parent.
+        - name: parent
+          in: query
+          schema: { type: integer }
+          example: 101
+          description: |
+            Only categories whose parent equals this categoryno. Verified:
+            parent=101 returned 14 categories, all level intermediate and all with
+            parent: 101.
+      responses:
+        "200":
+          description: Array of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+              example:
+                - categoryno: 101
+                  id: 7321
+                  groupno: 101
+                  name: Simms Waders
+                  level: main
+                  parent: null
+                  sort: 1
+                  status: 2
+                  showOnConsumerWeb: 1
+                  preSale: 1
+                  products: []
+                  articles:
+                    - id: 2937
+                      text: "2937: Simms Wader Sizechart"
+                      title: Simms Wader Sizechart
+                  categories: []
+                  offline: 0
+                  count: 159
+                  countPresale: 0
+                  countNew: 0
+                  countPsNew: 0
+                  countSpring: 139
+                  countFall: 20
+                  countPsSpring: 0
+                  countPsFall: 0
+                  countNewSpring: 0
+                  countNewFall: 0
+                  countPsNewSpring: 0
+                  countPsNewFall: 0
+                  brand: simms
+                  linkname: Waders
+                - categoryno: 102
+                  id: 7320
+                  groupno: 102
+                  name: Simms Footwear
+                  level: main
+                  parent: null
+                  sort: 2
+                  status: 2
+                  showOnConsumerWeb: 1
+                  preSale: 1
+                  hasNewProducts: 1
+                  hasPresaleProducts: 1
+                  articles: []
+                  offline: 0
+                  count: 207
+                  countPresale: 32
+                  countNew: 8
+                  countPsNew: 0
+                  countSpring: 152
+                  countFall: 55
+                  countPsSpring: 10
+                  countPsFall: 22
+                  countNewSpring: 8
+                  countNewFall: 0
+                  countPsNewSpring: 0
+                  countPsNewFall: 0
+                  brand: simms
+                  linkname: Footwear
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/categories/{categoryno}:
+    get:
+      tags: [categories]
+      operationId: getCategory
+      summary: Get one category
+      x-sdk-node: "ffe.category(101)"
+      x-sdk-php: "$ffe->category(101)"
+      parameters:
+        - name: categoryno
+          in: path
+          required: true
+          schema: { type: integer }
+          example: 101
+      responses:
+        "200":
+          description: |
+            The category. An unknown categoryno also returns HTTP 200 (not 404), but with
+            an empty object body — see the unknownCategoryno example. Note the by-id
+            response has no `brand` field, unlike list responses.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+              examples:
+                found:
+                  summary: Known categoryno
+                  value:
+                    categoryno: 101
+                    id: 7321
+                    groupno: 101
+                    name: Simms Waders
+                    level: main
+                    parent: null
+                    sort: 1
+                    status: 2
+                    showOnConsumerWeb: 1
+                    preSale: 1
+                    products: []
+                    articles:
+                      - id: 2937
+                        text: "2937: Simms Wader Sizechart"
+                        title: Simms Wader Sizechart
+                    categories: []
+                    offline: 0
+                    count: 159
+                    countPresale: 0
+                    countNew: 0
+                    countPsNew: 0
+                    countSpring: 139
+                    countFall: 20
+                    countPsSpring: 0
+                    countPsFall: 0
+                    countNewSpring: 0
+                    countNewFall: 0
+                    countPsNewSpring: 0
+                    countPsNewFall: 0
+                unknownCategoryno:
+                  summary: Unknown categoryno returns an empty object
+                  value: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/products/:
+    get:
+      tags: [products]
+      operationId: listProducts
+      summary: List or search products
+      description: |
+        Returns individual product variants (one entry per articleno / colour /
+        size combination), not grouped product families - see the unique
+        parameter below. The default, unfiltered response is not scoped to one
+        brand: 22 different brandno values were observed across a single
+        1000-item probe.
+      x-sdk-node: "ffe.products({ brand: 'simms', limit: 50, offset: 0 })"
+      x-sdk-php: "$ffe->products((object) ['brand' => 'simms', 'limit' => 50, 'offset' => 0])"
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 25 }
+          description: |
+            Number of products to return. Verified default is 25: an
+            unfiltered request with no limit given returned exactly 25 items.
+            No upper cap was found - limit=1000 returned 1000 items and
+            limit=3000 returned 3000 items, both un-truncated.
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+          description: |
+            Pagination offset. Verified: limit=2&offset=0 returned articleno
+            1113000, 1113001; limit=2&offset=2 returned 1113002, 1113003 - the
+            next two items in the same order.
+        - name: brand
+          in: query
+          schema: { type: string }
+          example: simms
+          description: |
+            brandno from /api/brands/. Verified: brand=simms returned only
+            brandno "Simms" items, a strict subset of the multi-brand
+            unfiltered list.
+        - name: maingroup
+          in: query
+          schema: { type: string }
+          example: simms headwear
+          description: |
+            Case-insensitive exact match against "<brandno> <maingroupname>"
+            (e.g. brand simms + maingroupname "Headwear" -> "simms headwear").
+            Verified: maingroup=simms%20headwear and maingroup=Simms%20Headwear
+            both returned the same 2 Headwear/Simms items; maingroup=headwear
+            (no brand prefix) returned zero results, so the brand prefix is
+            required for this parameter (unlike intgroup/subgroup below).
+        - name: intgroup
+          in: query
+          schema: { type: string }
+          example: beanies
+          description: |
+            Case-insensitive exact match against intermediategroupname, with
+            no brand prefix. Verified: intgroup=beanies and intgroup=BEANIES
+            both matched the Simms Headwear > Beanies group; the partial value
+            intgroup=bean matched nothing (exact match, not substring); the
+            brand-prefixed intgroup=simms%20beanies also matched nothing.
+        - name: subgroup
+          in: query
+          schema: { type: string }
+          example: wms g3 stockingfoots
+          description: |
+            Case-insensitive exact match against subgroupname, with no brand
+            prefix - same pattern as intgroup. Verified:
+            subgroup=wms%20g3%20stockingfoots matched all 13 items of that
+            Simms Women's > Waders > Wms G3 Stockingfoots sub-group.
+        - name: mainCat
+          in: query
+          schema: { type: integer }
+          example: 101
+          description: |
+            maingroupno. Verified: mainCat=101 returned only maingroupno 101
+            (Simms Waders) items.
+        - name: intCat
+          in: query
+          schema: { type: integer }
+          example: 1033
+          description: |
+            intermediategroupno. Verified: intCat=1033 returned only
+            intermediategroupno 1033 (Simms Headwear > Beanies) items.
+        - name: subCat
+          in: query
+          schema: { type: integer }
+          example: 10096
+          description: |
+            subgroupno. Verified: subCat=10096 returned only subgroupno 10096
+            (Simms Women's > Waders > Wms G3 Stockingfoots) items.
+        - name: gtin
+          in: query
+          schema: { type: string }
+          example: "4560111388931"
+          description: |
+            tradeItemNumber (barcode), exact match. Verified with two real
+            values: gtin=782420002818 returned exactly the one Loon item with
+            that tradeItemNumber, and gtin=4560111388931 returned exactly the
+            one C&F item (articleno 1113000) with that tradeItemNumber.
+        - name: articleNoIn
+          in: query
+          schema: { type: string }
+          example: "1113000,1113001"
+          description: |
+            Comma-separated list of articleno values. Verified:
+            articleNoIn=1113000,1113001 returned both matching items, in that
+            order.
+        - name: search
+          in: query
+          schema: { type: string }
+          example: simms waders
+          description: |
+            Free-text search. Verified: search=simms%20waders returned a
+            different, narrower result set than the unfiltered list (a Simms
+            wader product, versus the unfiltered list's unrelated top items).
+        - name: unique
+          in: query
+          schema: { type: boolean, default: false }
+          description: |
+            Documented (and implied by every product's own
+            apiLinkToProductGroup, which always appends &unique=true) to group
+            size/colour variants into one product with sizes, colors and
+            imgRef arrays. NOT verified live: every combination tried
+            (unique=true alone; with limit=1; narrowed to a single item via
+            mainCat, brand, gtin, articleNoIn or nameDisplay) consistently
+            returned HTTP 504 Gateway Timeout with an empty body. unique=false
+            was verified to behave identically to omitting the parameter.
+        - name: isNew
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+          description: |
+            Filters on the is_new flag. Verified in both directions:
+            isNew=1 returned only is_new: 1 items and isNew=0 returned only
+            is_new: 0 items.
+        - name: nameDisplay
+          in: query
+          schema: { type: string }
+          example: 30th Anniversary Boat Box
+          description: |
+            Exact match against nameDisplay. Works without unique=true, and
+            returns every colour/size variant sharing that marketing name (not
+            just one). Verified: nameDisplay=Bales%20Beach%20-%20Polycarbonate
+            returned all 17 variants sharing that nameDisplay.
+      responses:
+        "200":
+          description: |
+            Array of product variants (not grouped into product families -
+            see the unique parameter). Example trimmed for readability (long
+            text fields shortened, large maps/lists cut); the schema is
+            authoritative.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+              example:
+                - id: 701646
+                  articleno: "1113000"
+                  tradeItemNumber: "4560111388931"
+                  name: 30th Anniversary Boat Box
+                  nameDisplay: 30th Anniversary Boat Box
+                  brand: c&f
+                  brandno: "C&F"
+                  vismaBrand: C&F Design
+                  itemCategory: Fly Cases
+                  mainCategory: 30th Anniversary Series
+                  maingroupno: 519
+                  maingroupname: 30th Anniversary Series
+                  maingroupid: 10826
+                  intermediategroupno: 0
+                  subgroupno: 0
+                  productGroup: Professional Guide
+                  color: Black
+                  colorId: 4000
+                  size: XX-Large
+                  sizeId: 11029
+                  option_1: ""
+                  option_1_name: ""
+                  option_2: ""
+                  option_2_name: ""
+                  description: "Boat box features a black exterior and C&F's iconic silver foam changer. (trimmed to one sentence for this example)"
+                  countryOfOrigin: "392"
+                  countryCode: false
+                  country: false
+                  commodityCode: "4202990090"
+                  introYear: S26
+                  weight: 0.9625
+                  packingWeight: 0
+                  volume: 6744
+                  length: 31
+                  width: 22.2
+                  height: 9.8
+                  isActive: 0
+                  is_new: 1
+                  showonwebyesno: 1
+                  showOnConsumerWeb: 1
+                  preSale: 1
+                  preSaleNew: 0
+                  preSalePopular: 0
+                  preSaleDiscontinued: 0
+                  availability: "Yes"
+                  unitsInStock: 66
+                  unitsInStockHasMore: false
+                  retailCurrency: NOK
+                  retailPrice: 2199
+                  psRetailCurrency: NOK
+                  psRetailPrice: 2199
+                  priceNOK: 2199
+                  priceSEK: 2199
+                  priceDKK: 1499
+                  priceGBP: 169.9
+                  priceEUR: 199.9
+                  priceCHF: 169
+                  psPriceNOK: 2199
+                  psPriceSEK: 2199
+                  psPriceDKK: 1499
+                  psPriceGBP: 169.9
+                  psPriceEUR: 199.9
+                  psPriceCHF: 169
+                  dealerCurrency: NOK
+                  dealerPrice: 967.6
+                  dealerEurPrice: 98.4
+                  dealerRepairPrice: 0
+                  dealerPresaleCurrency: NOK
+                  dealerPresalePrice: 967.6
+                  dealerAsapCurrency: NOK
+                  dealerAsapPrice: 967.6
+                  pricelist:
+                    "44":
+                      prislistenr: "44"
+                      artikkelnr: "1113000"
+                      pris: "967.6"
+                      valutakode: NOK
+                      startdato: "2025-09-16T00:00:00+02:00"
+                      sluttdato: "2026-12-31T00:00:00+01:00"
+                      hash: 88700436fda51b7d382fdd65ae130485
+                  images:
+                    small: "https://dealer.flyfisheurope.com/80x80/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                    medium: "https://dealer.flyfisheurope.com/400x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                    large: "https://dealer.flyfisheurope.com/800x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                    xlarge: "https://dealer.flyfisheurope.com/1024x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                    xxlarge: "https://dealer.flyfisheurope.com/1280x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                  link: "https://dealer.flyfisheurope.com/c%26f/30th%20anniversary%20series/product/1113000"
+                  linkConsumerWeb: "https://www.flyfisheurope.com/c%26f/30th%20anniversary%20series/product/1113000"
+                  apiLinkToProductGroup: "https://dealer.flyfisheurope.com/api/products/?nameDisplay=30th%20Anniversary%20Boat%20Box&unique=true"
+                  apiLinkToProductMainCategory: "https://dealer.flyfisheurope.com/api/products/?mainCat=519&unique=true"
+                  imageRefPrefixes:
+                    small: "https://dealer.flyfisheurope.com/80x80/"
+                    medium: "https://dealer.flyfisheurope.com/400x/"
+                    large: "https://dealer.flyfisheurope.com/800x/"
+                    xlarge: "https://dealer.flyfisheurope.com/1024x/"
+                    xxlarge: "https://dealer.flyfisheurope.com/1280x/"
+                  related: {}
+                  supplierOrderLines: []
+                  customerOrderLines: []
+                  warehouse: ""
+                  updatedDate: "2026-09-09T19:12:57.803Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/products/{articleno}:
+    get:
+      tags: [products]
+      operationId: getProduct
+      summary: Get one product variant by articleno
+      x-sdk-node: "ffe.product('1113000')"
+      x-sdk-php: "$ffe->product('1113000')"
+      parameters:
+        - name: articleno
+          in: path
+          required: true
+          schema: { type: string }
+          example: "1113000"
+      responses:
+        "200":
+          description: |
+            The product variant. An unknown articleno also returns HTTP 200
+            (not 404), but with an empty object body - see the
+            unknownArticleno example. Verified with two different unknown
+            values: a made-up one (DOES-NOT-EXIST) and a plausible-looking one
+            copied from an earlier draft of this spec (10328-033-20, which is
+            simply not present in this dealer's current catalog) - both
+            returned {}. The found example is trimmed for readability (long
+            text fields shortened, large maps/lists cut); the schema is
+            authoritative.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+              examples:
+                found:
+                  summary: Known articleno
+                  value:
+                    id: 701646
+                    articleno: "1113000"
+                    tradeItemNumber: "4560111388931"
+                    name: 30th Anniversary Boat Box
+                    nameDisplay: 30th Anniversary Boat Box
+                    brand: c&f
+                    brandno: "C&F"
+                    vismaBrand: C&F Design
+                    itemCategory: Fly Cases
+                    mainCategory: 30th Anniversary Series
+                    maingroupno: 519
+                    maingroupname: 30th Anniversary Series
+                    maingroupid: 10826
+                    intermediategroupno: 0
+                    subgroupno: 0
+                    productGroup: Professional Guide
+                    color: Black
+                    colorId: 4000
+                    size: XX-Large
+                    sizeId: 11029
+                    option_1: ""
+                    option_1_name: ""
+                    option_2: ""
+                    option_2_name: ""
+                    description: "Boat box features a black exterior and C&F's iconic silver foam changer. (trimmed to one sentence for this example)"
+                    descriptionHtml: "<p>Boat box features a black exterior and C&amp;F's iconic silver foam changer. (trimmed to one sentence for this example)</p>"
+                    countryOfOrigin: "392"
+                    countryCode: false
+                    country: false
+                    commodityCode: "4202990090"
+                    introYear: S26
+                    weight: 0.9625
+                    packingWeight: 0
+                    volume: 6744
+                    length: 31
+                    width: 22.2
+                    height: 9.8
+                    isActive: 0
+                    is_new: 1
+                    showonwebyesno: 1
+                    showOnConsumerWeb: 1
+                    preSale: 1
+                    preSaleNew: 0
+                    preSalePopular: 0
+                    preSaleDiscontinued: 0
+                    availability: "Yes"
+                    unitsInStock: 66
+                    retailCurrency: NOK
+                    retailPrice: 2199
+                    psRetailCurrency: NOK
+                    psRetailPrice: 2199
+                    priceNOK: 2199
+                    priceSEK: 2199
+                    priceDKK: 1499
+                    priceGBP: 169.9
+                    priceEUR: 199.9
+                    priceCHF: 169
+                    psPriceNOK: 2199
+                    psPriceSEK: 2199
+                    psPriceDKK: 1499
+                    psPriceGBP: 169.9
+                    psPriceEUR: 199.9
+                    psPriceCHF: 169
+                    dealerCurrency: NOK
+                    dealerPrice: 967.6
+                    dealerEurPrice: 98.4
+                    dealerRepairPrice: 0
+                    dealerPresaleCurrency: NOK
+                    dealerPresalePrice: 967.6
+                    dealerAsapCurrency: NOK
+                    dealerAsapPrice: 967.6
+                    pricelist:
+                      "5":
+                        prislistenr: "5"
+                        artikkelnr: "1113000"
+                        pris: "98.4"
+                        valutakode: EUR
+                        startdato: "2025-09-16T00:00:00+02:00"
+                        sluttdato: "2026-12-31T00:00:00+01:00"
+                        hash: 9703ddc639da18c445f33c2f764db526
+                      "15": {}
+                      "44":
+                        prislistenr: "44"
+                        artikkelnr: "1113000"
+                        pris: "967.6"
+                        valutakode: NOK
+                        startdato: "2025-09-16T00:00:00+02:00"
+                        sluttdato: "2026-12-31T00:00:00+01:00"
+                        hash: 88700436fda51b7d382fdd65ae130485
+                    pricelistAsap:
+                      "44":
+                        prislistenr: "44"
+                        artikkelnr: "1113000"
+                        pris: "967.6"
+                        valutakode: NOK
+                        startdato: "2025-09-16T00:00:00+02:00"
+                        sluttdato: "2026-12-31T00:00:00+01:00"
+                        hash: 88700436fda51b7d382fdd65ae130485
+                    pricelistPresale:
+                      "5":
+                        pris: 90.2
+                        valutakode: EUR
+                      "15": {}
+                      "44":
+                        pris: 967.6
+                        valutakode: NOK
+                    pricelistPresaleAsap:
+                      "5":
+                        pris: 98.4
+                        valutakode: EUR
+                      "15": {}
+                      "44":
+                        pris: 967.6
+                        valutakode: NOK
+                    images:
+                      small: "https://dealer.flyfisheurope.com/80x80/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                      medium: "https://dealer.flyfisheurope.com/400x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                      large: "https://dealer.flyfisheurope.com/800x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                      xlarge: "https://dealer.flyfisheurope.com/1024x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                      xxlarge: "https://dealer.flyfisheurope.com/1280x/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                      list:
+                        - small: "https://dealer.flyfisheurope.com/80x80/dealerweb-cms-ba4993b2-b83f-4409-8251-c7afe0391531.jpg"
+                          medium: "https://dealer.flyfisheurope.com/400x/dealerweb-cms-ba4993b2-b83f-4409-8251-c7afe0391531.jpg"
+                          large: "https://dealer.flyfisheurope.com/800x/dealerweb-cms-ba4993b2-b83f-4409-8251-c7afe0391531.jpg"
+                          xlarge: "https://dealer.flyfisheurope.com/1024x/dealerweb-cms-ba4993b2-b83f-4409-8251-c7afe0391531.jpg"
+                          xxlarge: "https://dealer.flyfisheurope.com/1280x/dealerweb-cms-ba4993b2-b83f-4409-8251-c7afe0391531.jpg"
+                    imgs:
+                      "1":
+                        name: 1113000-1.jpg
+                        encoding: 7bit
+                        mimetype: image/jpeg
+                        ext: .jpg
+                        newFilename: dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg
+                        s3Link: "https://dealer.flyfisheurope.com/original/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                        s3ThumbLink: "https://dealer.flyfisheurope.com/80x80/dealerweb-cms-50f660dc-2283-4544-bbb6-7e951bef1b46.jpg"
+                        bytes: 183473
+                        sort: 1
+                    link: "https://dealer.flyfisheurope.com/c%26f/30th%20anniversary%20series/product/1113000"
+                    linkConsumerWeb: "https://www.flyfisheurope.com/c%26f/30th%20anniversary%20series/product/1113000"
+                    apiLinkToProductGroup: "https://dealer.flyfisheurope.com/api/products/?nameDisplay=30th%20Anniversary%20Boat%20Box&unique=true"
+                    apiLinkToProductMainCategory: "https://dealer.flyfisheurope.com/api/products/?mainCat=519&unique=true"
+                    imageRefPrefixes:
+                      small: "https://dealer.flyfisheurope.com/80x80/"
+                      medium: "https://dealer.flyfisheurope.com/400x/"
+                      large: "https://dealer.flyfisheurope.com/800x/"
+                      xlarge: "https://dealer.flyfisheurope.com/1024x/"
+                      xxlarge: "https://dealer.flyfisheurope.com/1280x/"
+                    related: {}
+                    supplierOrderLines: []
+                    customerOrderLines: []
+                    warehouse: ""
+                    updatedFields:
+                      unitsInStock: 1788415984
+                      priceNOK: 1770383646
+                      maingroupname: 1788645469
+                    updatedLastValue:
+                      unitsInStock: 67
+                      priceNOK: false
+                      maingroupname: null
+                    updatedDate: "2026-09-09T19:12:57.803Z"
+                unknownArticleno:
+                  summary: Unknown articleno returns an empty object
+                  value: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/baskets/:
+    get:
+      tags: [baskets]
+      operationId: getBasket
+      x-sdk-node: "ffe.baskets({ presale: 1 })"
+      x-sdk-php: "$ffe->baskets((object) ['presale' => 1])"
+      summary: Get your current basket
+      description: |
+        Returns the dealer's current basket in DealerWeb.
+
+        Verified live: `GET /api/baskets/` returned an empty basket
+        (zero lines, `qty: 0`, `total: 0`, `retailTotal: 0`) for the
+        test account; `GET /api/baskets/?presale=1` returned a
+        byte-identical response body - no observable difference with
+        the test account. Because the basket had no lines, the shape of
+        a populated line could not be verified live - see the
+        `BasketLine` schema's own description.
+
+        Neither the Node nor the PHP SDK currently wraps this endpoint
+        (verified: no `basket`-named method exists in either SDK
+        source file); call it directly with an HTTP client.
+
+        Write operations (adding lines, placing orders) are not
+        documented here yet; the OPTIONS response advertises methods
+        GET,HEAD,PUT,PATCH,POST,DELETE, but they have not been
+        verified. (The plain `Allow` header on that same OPTIONS
+        response omitted POST: `GET,HEAD,PUT,PATCH,DELETE`.)
+      parameters:
+        - name: presale
+          in: query
+          schema: { type: integer, enum: [1] }
+          description: |
+            Enable pre-season mode. Verified: for the test account's
+            (empty) basket, this returned a response identical to
+            omitting the parameter.
+      responses:
+        "200":
+          description: The basket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+              example:
+                lines: []
+                pricelistno: 44
+                customerno: 999999
+                emailaddress: customer@example.com
+                companyName: Your customer name
+                qty: 0
+                total: 0
+                retailTotal: 0
+                summary: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/dealers/info:
+    get:
+      tags: [dealers]
+      operationId: getDealerInfo
+      summary: Information about the dealer account the token belongs to
+      description: |
+        Verified live: `GET /api/dealers/info` returned HTTP 200 with a large
+        (~2.4 MB) JSON body describing the authenticated dealer account -
+        contact/store details, notification and CSV-download settings, the
+        current terms-and-conditions acceptance record, saved shipping
+        addresses/contacts, a favourites map, and (for this "agent" test
+        account) 165 sub-dealer records the account manages, under
+        `data.agent_dealers`. `data.agent_dealers[]` structure is
+        intentionally not documented in detail - see the schema.
+
+        Several sub-objects are per-account maps keyed by a dynamic value
+        (login email address, brand slug, terms-and-conditions id, etc.)
+        rather than a fixed set of field names - see each property's
+        description below.
+      x-sdk-node: "ffe.dealerInfo()"
+      x-sdk-php: "$ffe->dealerInfo()"
+      responses:
+        "200":
+          description: |
+            Dealer information. Example trimmed for readability (long lists
+            cut, agent_dealers omitted); the schema is authoritative.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealerInfo"
+              example:
+                status: 200
+                message: DealerList
+                data:
+                  customerno: 999999
+                  name: Jane Dealer
+                  country: NORWAY
+                  email: customer@example.com
+                  store:
+                    name: Your customer name
+                    address1: Example Street 1
+                    address2: ""
+                    zip: "0000"
+                    city: Example City
+                    country: Sweden
+                    phone: "+47 00000000"
+                    fax: ""
+                    email: customer@example.com
+                    url: "https://example.com"
+                    opening_hours_mon: 08-17
+                    opening_hours_tue: 08-17
+                    opening_hours_wed: 08-17
+                    opening_hours_thu: 08-17
+                    opening_hours_fri: 08-17
+                    opening_hours_sat: 09 - 13
+                    opening_hours_sun: closed
+                    google_maps_lookup:
+                      street_number: "1"
+                      route: Example Street
+                      postal_town: Example City
+                      administrative_area_level_2: Example County
+                      administrative_area_level_1: Example Region
+                      country: "NO"
+                      postal_code: "0000"
+                      geometry:
+                        location:
+                          lat: 59.9
+                          lng: 10.7
+                        location_type: ROOFTOP
+                        viewport:
+                          northeast:
+                            lat: 59.91
+                            lng: 10.71
+                          southwest:
+                            lat: 59.89
+                            lng: 10.69
+                      updated: "2014-08-07T15:06:23.402Z"
+                  deliveryaddress1: Example Street 1
+                  deliveryname: Your customer name
+                  deliverypostcode: "0000"
+                  deliverypostoffice: Example City
+                  currency: NOK
+                  agent_dealers: []
+                  emails:
+                    customer_example_com:
+                      activity: 42
+                      forgotten: []
+                      forgottens: 0
+                      last_activity: 1787643625
+                      last_forgotten: 0
+                      last_login: 1787643625
+                      login: 12
+                      login_failed: 0
+                      logins: [1787643625]
+                      logins_failed: []
+                      newsletter: 0
+                      newsletter_subscribed: "0"
+                      newsletter_subscribed_from: ""
+                      newsletter_subscribed_user_agent: ""
+                      visits: 100
+                      last_login_failed: 0
+                      current_login_failed: 0
+                      isOnline: false
+                      api_activity: 5
+                      last_api_activity: 1765896519
+                      isOnlineApi: false
+                  isAdmin: true
+                  is_agent: 1
+                  isDealerAdmin: true
+                  hasAccessToCombos: 1
+                  acceptConsumerOrders: 0
+                  settings:
+                    inboxEmailNotifications: false
+                    darkmode: 1
+                    language: en
+                    display: normal
+                    receiveDailyAvailabilityFiles: true
+                    receiveDailyAvailabilityFilesEmail: customer@example.com
+                    notificationEmail1: customer@example.com
+                    notificationEmail2: customer@example.com
+                    notificationEmail3: customer@example.com
+                  favorite:
+                    product:
+                      "4263": 1
+                      "4265": 1
+                      "4978": 1
+                  brands:
+                    simms:
+                      allowed: true
+                    ahrex:
+                      allowed: true
+                  backorders: {}
+                  backorderDeleteReq:
+                    "999999":
+                      "111111": 1557298284
+                  currentEmail: customer@example.com
+                  inboxSignature: "Mvh, \nJane Dealer"
+                  shipping:
+                    addresses:
+                      - customerno: "999999"
+                        id: "<redacted>"
+                        recipient: Your customer name
+                        street: Example Street
+                        street2: ""
+                        streetNumber: "1"
+                        postalCode: "0000"
+                        city: Example City
+                        country: AT
+                        selectedAddress: 1
+                        created: "2020-05-11T06:58:26.552Z"
+                        log:
+                          - action: create
+                            dealer: 999999
+                            dealerName: Jane Dealer
+                            dealerEmail: customer@example.com
+                    contacts:
+                      - customerno: "999999"
+                        id: "<redacted>"
+                        name: Jane Dealer
+                        phone: ""
+                        email: ""
+                        selectedContact: 1
+                        created: "2020-05-11T06:58:41.392Z"
+                        log:
+                          - action: create
+                            dealer: 999999
+                            dealerName: Jane Dealer
+                            dealerEmail: customer@example.com
+                  termsAndConditions:
+                    "1":
+                      article:
+                        id: 3164
+                        title: Terms and Conditions
+                        body: "PRE-SEASON PRICING... (truncated for brevity)"
+                        create_date: "2020-01-27T12:24:36.953Z"
+                        updated: "2020-05-26T11:25:37+02:00"
+                        tag: 407
+                        tags:
+                          - id: 407
+                            name: terms-and-conditions
+                        status: 2
+                        version: 1
+                        images: {}
+                      acceptedTerms: "PRE-SEASON PRICING... (truncated for brevity)"
+                      acceptedDate: "2020-05-26T09:30:28.154Z"
+                  csvDownloads:
+                    sa: 1
+                    regal: 1
+                    simms: 22
+                  csvAdminDownloads:
+                    simms: 13
+                    whiting: 2
+                  useragent:
+                    isYaBrowser: false
+                    isAuthoritative: true
+                    isMobile: false
+                    isMobileNative: false
+                    isTablet: false
+                    isiPad: false
+                    isiPod: false
+                    isiPhone: false
+                    isiPhoneNative: false
+                    isAndroid: false
+                    isAndroidNative: false
+                    isBlackberry: false
+                    isOpera: false
+                    isIE: false
+                    isEdge: false
+                    isIECompatibilityMode: false
+                    isSafari: false
+                    isFirefox: false
+                    isWebkit: false
+                    isChrome: false
+                    isKonqueror: false
+                    isOmniWeb: false
+                    isSeaMonkey: false
+                    isFlock: false
+                    isAmaya: false
+                    isPhantomJS: false
+                    isEpiphany: false
+                    isDesktop: false
+                    isWindows: false
+                    isLinux: false
+                    isLinux64: false
+                    isMac: false
+                    isChromeOS: false
+                    isBada: false
+                    isSamsung: false
+                    isRaspberry: false
+                    isBot: false
+                    isCurl: false
+                    isAndroidTablet: false
+                    isWinJs: false
+                    isKindleFire: false
+                    isSilk: false
+                    isCaptive: false
+                    isSmartTV: false
+                    isUC: false
+                    isFacebook: false
+                    isAlamoFire: false
+                    isElectron: false
+                    silkAccelerated: false
+                    browser: unknown
+                    version: unknown
+                    os: unknown
+                    platform: unknown
+                    geoIp: {}
+                    source: Amazon CloudFront
+                    isWechat: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/pos/sales/:
+    get:
+      tags: [pos-sales]
+      operationId: listPosSales
+      summary: List sales reported from your point of sale
+      description: |
+        Verified live: `GET /api/pos/sales/` returned HTTP 200 with an array
+        of 15 sale records for the test account; `GET /api/pos/sales/?limit=2`
+        returned the same shape truncated to 2 records (the limit parameter
+        is honoured).
+
+        Supports CORS preflight (OPTIONS): the `access-control-allow-methods`
+        header advertises GET, HEAD, PUT, PATCH, POST, DELETE. The plain
+        `Allow` header on the same OPTIONS response is narrower and reflects
+        what this collection path actually implements: POST, GET, HEAD.
+      x-sdk-node: "ffe.posSales({ limit: 50 })"
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: offset
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Array of sales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PosSale"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [pos-sales]
+      operationId: addPosSale
+      summary: Report a sale from your point of sale
+      x-verified: false
+      description: |
+        Not verified against the live API. Request shape taken from the Node
+        SDK method; confirm with Flyfish Europe before integrating.
+      x-sdk-node: "ffe.posAddSale({ ... })"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PosSale"
+      responses:
+        "201":
+          description: Sale stored
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/pos/sales/{id}:
+    get:
+      tags: [pos-sales]
+      operationId: getPosSale
+      summary: Get one reported sale
+      description: |
+        Verified live: `GET /api/pos/sales/158` returned HTTP 200 with a
+        body byte-identical to that sale's entry in the `GET /api/pos/sales/`
+        list. An unknown id also returns HTTP 200 (not 404), with an empty
+        object body - verified twice with `GET /api/pos/sales/999999999`,
+        both times returning `{}` - see the unknownId example.
+      x-sdk-node: "ffe.posSales({}, { id: 123 })"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+          example: 158
+      responses:
+        "200":
+          description: The sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosSale"
+              examples:
+                found:
+                  summary: Known id
+                  value:
+                    id: 158
+                    dealer: 999999
+                    products:
+                      - id: 23446
+                        dealer: 999999
+                        articleno: R8554
+                        tradeItemNumber: "816428012996"
+                        brand: scott
+                        name: Scott Radian 8'6'' #5 4-pc
+                        inStock: -1
+                        retailPrice: 7999
+                        retailCurrency: NOK
+                        tax: 25
+                        costPrice: 3839.5
+                        category: Radian Series
+                        images:
+                          small: "https://dealer.flyfisheurope.com/80x80/product_1_21721.jpg"
+                          medium: "https://dealer.flyfisheurope.com/400x/product_1_21721.jpg"
+                          large: "https://dealer.flyfisheurope.com/800x/product_1_21721.jpg"
+                        uploadedFiles: []
+                        color: null
+                        size: null
+                        itemCategory: Radian Series
+                        mainCategory: Radian Series
+                        intermediateCategory: null
+                        favorite: false
+                    totals:
+                      subTotal: 7999
+                      total: 7999
+                      qty: 1
+                      discountAmount: 0
+                      discount: 0
+                      tax: 1599.8
+                      currency: NOK
+                      totalPaid: 7999
+                    total: 7999
+                    tax: 1599.8
+                    currency: NOK
+                    discountAmount: 0
+                    discount: 0
+                    email: null
+                    fname: null
+                    lname: null
+                    cellphone: null
+                    note: null
+                    paymentMethod: cash
+                    paymentMethods:
+                      - paymentMethod: cash
+                        total: 7999
+                    created: "2019-03-22T11:00:43.804Z"
+                    updated: "2019-03-22T11:00:43.804Z"
+                    createdDate: "2019-03-22T11:00:43.804Z"
+                    updatedDate: "2019-03-22T11:00:43.804Z"
+                unknownId:
+                  summary: Unknown id returns an empty object
+                  value: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/pos/products/:
+    get:
+      tags: [pos-products]
+      operationId: listPosProducts
+      summary: List your own point-of-sale products
+      description: |
+        Verified live: `GET /api/pos/products/` returned HTTP 200 with an
+        array of 17 product records for the test account; `GET
+        /api/pos/products/?limit=2` returned the same shape truncated to 2
+        records (the limit parameter is honoured).
+
+        Supports CORS preflight (OPTIONS): the `access-control-allow-methods`
+        header advertises GET, HEAD, PUT, PATCH, POST, DELETE. The plain
+        `Allow` header on the same OPTIONS response is narrower and reflects
+        what this collection path actually implements: POST, GET, HEAD.
+      x-sdk-node: "ffe.posProducts({ limit: 50 })"
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: offset
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Array of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PosProduct"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [pos-products]
+      operationId: addPosProduct
+      summary: Create a point-of-sale product
+      x-verified: false
+      description: |
+        Not verified against the live API. Request shape taken from the Node
+        SDK method; confirm with Flyfish Europe before integrating.
+      x-sdk-node: "ffe.posAddProduct({ ... })"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PosProduct"
+      responses:
+        "201":
+          description: Product stored
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/pos/products/{id}:
+    get:
+      tags: [pos-products]
+      operationId: getPosProduct
+      summary: Get one point-of-sale product
+      description: |
+        Verified live: `GET /api/pos/products/23446` returned HTTP 200 with
+        a body byte-identical to that product's entry in the `GET
+        /api/pos/products/` list. An unknown id also returns HTTP 200 (not
+        404), with an empty object body - verified twice with `GET
+        /api/pos/products/999999999`, both returning `{}` - see the
+        unknownId example. One earlier attempt at the same unknown-id call
+        returned HTTP 504 Gateway Timeout with an empty body and CloudFront
+        error headers before the two 200/{} responses; treated as a
+        transient gateway blip rather than the documented behaviour, since
+        it did not reproduce.
+      x-sdk-node: "ffe.posProducts({}, { id: 123 })"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+          example: 23446
+      responses:
+        "200":
+          description: The product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosProduct"
+              examples:
+                found:
+                  summary: Known id
+                  value:
+                    id: 23446
+                    dealer: 999999
+                    articleno: R8554
+                    tradeItemNumber: "816428012996"
+                    brand: scott
+                    name: Scott Radian 8'6'' #5 4-pc
+                    inStock: -1
+                    retailPrice: 7999
+                    retailCurrency: NOK
+                    tax: 25
+                    costPrice: 3839.5
+                    category: Radian Series
+                    images:
+                      small: "https://dealer.flyfisheurope.com/80x80/product_1_21721.jpg"
+                      medium: "https://dealer.flyfisheurope.com/400x/product_1_21721.jpg"
+                      large: "https://dealer.flyfisheurope.com/800x/product_1_21721.jpg"
+                    uploadedFiles: []
+                    color: null
+                    size: null
+                    itemCategory: Radian Series
+                    mainCategory: Radian Series
+                    intermediateCategory: null
+                    favorite: false
+                unknownId:
+                  summary: Unknown id returns an empty object
+                  value: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [pos-products]
+      operationId: updatePosProduct
+      summary: Update a point-of-sale product
+      x-verified: false
+      description: |
+        Not verified against the live API. Request shape taken from the Node
+        SDK method; confirm with Flyfish Europe before integrating.
+      x-sdk-node: "ffe.posEditProduct({ ... }, { id: 123 })"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PosProduct"
+      responses:
+        "202":
+          description: Product updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+components:
+  securitySchemes:
+    bearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 401
+            message: "Invalid JwtToken: UnauthorizedError"
+            reason: jwt malformed
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        reason:
+          type: string
+          description: Present on some error responses, e.g. token validation failures.
+    LoginRequest:
+      type: object
+      required: [email, pass]
+      properties:
+        email:
+          type: string
+          format: email
+        pass:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        apiToken:
+          type: string
+        message:
+          type: string
+    Brand:
+      type: object
+      properties:
+        id:
+          type: integer
+        brandno:
+          type: string
+          description: Brand identifier used in the brand query parameter elsewhere
+        sort:
+          type: integer
+        name:
+          type: string
+        fullName:
+          type: string
+        count:
+          type: integer
+        countPresale:
+          type: integer
+        updatedDate:
+          type: string
+          format: date-time
+        showOnConsumerWeb:
+          type: integer
+        showOnDealerWeb:
+          type: integer
+        countNew:
+          type: integer
+        countPsNew:
+          type: integer
+        countSpring:
+          type: integer
+        countFall:
+          type: integer
+        countPsSpring:
+          type: integer
+        countPsFall:
+          type: integer
+        countNewSpring:
+          type: integer
+        countNewFall:
+          type: integer
+        countPsNewSpring:
+          type: integer
+        countPsNewFall:
+          type: integer
+    Category:
+      type: object
+      properties:
+        categoryno:
+          type: integer
+        id:
+          type: integer
+        groupno:
+          type: integer
+          description: Always equal to categoryno in observed data.
+        name:
+          type: string
+        level:
+          type: string
+          enum: [main, intermediate, sub]
+        parent:
+          type: integer
+          nullable: true
+          description: categoryno of the parent category; null for level main.
+        sort:
+          type: integer
+        status:
+          type: integer
+        showOnConsumerWeb:
+          type: integer
+        preSale:
+          type: integer
+        hasNewProducts:
+          type: integer
+        hasPresaleProducts:
+          type: integer
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              articleno:
+                type: string
+        articles:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              text:
+                type: string
+              title:
+                type: string
+        articlesTech:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              text:
+                type: string
+              title:
+                type: string
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              text:
+                type: string
+              name:
+                type: string
+        offline:
+          type: integer
+        count:
+          type: integer
+        countPresale:
+          type: integer
+        countNew:
+          type: integer
+        countPsNew:
+          type: integer
+        countSpring:
+          type: integer
+        countFall:
+          type: integer
+        countPsSpring:
+          type: integer
+        countPsFall:
+          type: integer
+        countNewSpring:
+          type: integer
+        countNewFall:
+          type: integer
+        countPsNewSpring:
+          type: integer
+        countPsNewFall:
+          type: integer
+        brand:
+          type: string
+          description: Present on list responses; absent when fetching a single category by categoryno.
+        linkname:
+          type: string
+    Product:
+      type: object
+      description: |
+        One product variant (a single articleno / colour / size combination),
+        as returned by GET /api/products/ and GET /api/products/{articleno}.
+        Field list is the observed union across every scripts/probes/prod-*.json
+        body, deduplicated by articleno (3024 distinct products; 4306 raw,
+        pre-dedup occurrences). Not every field is present on every item -
+        every percentage below was computed by a script over that
+        deduplicated corpus (a field counts as present for an articleno if
+        ANY probed occurrence of that articleno had it), not eyeballed. The
+        sizes, colors and imgRef fields are documented from the pre-existing
+        spec draft and from apiLinkToProductGroup's own use of unique=true,
+        but could NOT be verified live: every unique=true probe returned
+        HTTP 504.
+      properties:
+        id:
+          type: integer
+        articleno:
+          type: string
+        tradeItemNumber:
+          type: string
+          description: GTIN / barcode. Matches the gtin query parameter.
+        name:
+          type: string
+        nameDisplay:
+          type: string
+          description: Marketing name shared by all colour/size variants of a product family. Matches the nameDisplay query parameter.
+        productGroup:
+          type: string
+        brand:
+          type: string
+          description: Lowercase brand slug, e.g. "simms".
+        brandno:
+          type: string
+          description: Brand identifier as seen elsewhere in the catalog, e.g. "Simms", "C&F", "Loon". Casing is inconsistent with Brand.brandno (which is lowercase); matching against the brand query parameter is case-insensitive.
+        vismaBrand:
+          type: string
+          description: Brand name as stored in the upstream Visma ERP, e.g. "C&F Design".
+        itemCategory:
+          type: string
+          description: |
+            Short internal category code/name. Often distinct from
+            mainCategory (e.g. itemCategory "HEAD" alongside mainCategory
+            "Headwear"), but not always: 522 of 4306 raw (non-deduplicated)
+            occurrences had itemCategory equal to mainCategory (e.g.
+            articleno F0281: itemCategory "Floatants", mainCategory
+            "Floatants").
+        mainCategory:
+          type: string
+          description: Same value as maingroupname.
+        intermediateCategory:
+          type: string
+          description: |
+            Same value as intermediategroupname. Present on 87.1% of probed
+            products (2634/3024) - in every case but one, exactly when
+            intermediategroupno is non-zero (see intermediategroupno).
+        subCategory:
+          type: string
+          description: |
+            Same value as subgroupname. Present on 55.5% of probed products
+            (1677/3024), exactly when subgroupno is non-zero (0 exceptions
+            observed - see subgroupno).
+        maingroupno:
+          type: integer
+          description: Matches the mainCat query parameter.
+        maingroupname:
+          type: string
+        maingroupid:
+          type: integer
+        maingroupsort:
+          type: integer
+          nullable: true
+        intermediategroupno:
+          type: integer
+          description: |
+            Matches the intCat query parameter. 0 when the product has no
+            intermediate group, with one observed exception: articleno
+            12023-016-07 had intermediategroupno: 0 but a fully-populated
+            intermediategroupname/intermediategroupid/intermediategroupsort/
+            intermediateCategory anyway.
+        intermediategroupname:
+          type: string
+          description: |
+            Present on 87.1% of probed products (2634/3024) - in every case
+            but one, exactly when intermediategroupno is non-zero (see
+            intermediategroupno).
+        intermediategroupid:
+          type: integer
+          description: Present on 87.1% of probed products (2634/3024); same conditions as intermediategroupname.
+        intermediategroupsort:
+          type: integer
+          nullable: true
+          description: |
+            Present on 86.9% of probed products (2629/3024). Never present
+            when intermediategroupno is 0, but not quite universal when it
+            isn't either: of the 3417 raw (non-deduplicated) occurrences with
+            a non-zero intermediategroupno, 5 were missing this field.
+        subgroupno:
+          type: integer
+          description: Matches the subCat query parameter. 0 when the product has no sub group.
+        subgroupname:
+          type: string
+          description: |
+            Present on 55.5% of probed products (1677/3024), exactly when
+            subgroupno is non-zero (0 exceptions observed).
+        subgroupid:
+          type: integer
+          description: Present on 55.5% of probed products (1677/3024); same conditions as subgroupname.
+        subgroupsort:
+          type: integer
+          nullable: true
+          description: |
+            Present on 47.4% of probed products (1434/3024). Never present
+            when subgroupno is 0, but far from universal when it isn't:
+            of the 2004 raw (non-deduplicated) occurrences with a non-zero
+            subgroupno, 243 (12%) were missing this field.
+        sort:
+          type: integer
+          nullable: true
+          description: Present on 44.6% of probed products (1348/3024).
+        color:
+          type: string
+        colorId:
+          type: integer
+        size:
+          oneOf:
+            - type: string
+            - type: boolean
+          description: |
+            The variant's size label, or false (observed on 12.3% of probed
+            products, 373/3024, and always false when boolean - never true)
+            when the product has no size dimension.
+        sizeId:
+          type: integer
+        option_1:
+          type: string
+          description: |
+            Free-form variant option (e.g. frame colour on sunglasses);
+            empty string when unused. Not always paired with option_1_name:
+            95 raw occurrences had an empty option_1 with a non-empty
+            option_1_name (e.g. articleno 13785-001-00: option_1: "",
+            option_1_name: "color").
+        option_1_name:
+          type: string
+          description: Label for option_1, e.g. "frame color"; empty string when unused (see option_1 for observed pairing exceptions).
+        option_2:
+          type: string
+          description: |
+            Free-form variant option (e.g. lens colour on sunglasses);
+            empty string when unused. Not always paired with
+            option_2_name: 130 raw occurrences had a non-empty option_2 with
+            an empty option_2_name (e.g. articleno C1195-10: option_2:
+            "Black Nickel", option_2_name: "").
+        option_2_name:
+          type: string
+          description: Label for option_2, e.g. "lens color"; empty string when unused (see option_2 for observed pairing exceptions).
+        description:
+          type: string
+          description: Present on 97.4% of probed products (2944/3024).
+        descriptionHtml:
+          type: string
+          description: HTML version of description. Rare - present on only 1 of 3024 distinct products probed.
+        features:
+          type: string
+          description: Bullet list as plain text. Present on 59.4% of probed products (1795/3024).
+        care:
+          type: string
+          description: Care instructions as plain text. Present on 32.9% of probed products (996/3024).
+        tech:
+          type: string
+          description: Free-form markdown, sometimes just an embedded image reference. Present on 27.6% of probed products (834/3024).
+        howtouse:
+          type: string
+          description: Present on 8.0% of probed products (241/3024).
+        introYear:
+          type: string
+          description: e.g. "S26" or "S22-S26" (a range), not always a plain year.
+        isActive:
+          type: integer
+        is_new:
+          type: integer
+          description: 0 or 1. Matches the isNew query parameter.
+        isMoving:
+          type: boolean
+          description: Present on 32.7% of probed products (989/3024).
+        showonwebyesno:
+          type: integer
+        showOnConsumerWeb:
+          type: integer
+        preSale:
+          type: integer
+        preSaleNew:
+          type: integer
+        preSalePopular:
+          type: integer
+        preSaleDiscontinued:
+          type: integer
+        status:
+          type: integer
+          description: Present on 15.4% of probed products (467/3024).
+        offline:
+          type: integer
+          description: Present on 15.4% of probed products (467/3024).
+        availability:
+          oneOf:
+            - type: string
+            - type: number
+          description: |
+            Present on all 3024 distinct products probed (100%). Observed
+            patterns: "Yes" = in stock; "No" = out of stock; a date string in
+            D.M.YY / DD.MM.YY form (e.g. "02.01.27", "04.06.26", "15.12.26",
+            "22.12.25", "01.01.40") = expected restock date; "20+" = in
+            stock, at least 20 units; a plain number (1-19 observed) = in
+            stock with that exact quantity. Note the date format is
+            day.month.year, not ISO YYYY-MM-DD.
+        unitsInStock:
+          type: integer
+        unitsInStockHasMore:
+          type: boolean
+          description: |
+            Present on all 3024 distinct products probed (100%) by at least
+            one occurrence. However, on the one single-item
+            GET /api/products/{articleno} response probed (articleno
+            1113000), this field was absent from that specific response even
+            though 9 other, list-endpoint occurrences of the same articleno
+            all included it - the two endpoints may not return exactly the
+            same field set.
+        weight:
+          type: number
+        packingWeight:
+          type: number
+        volume:
+          type: number
+        length:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+        countryOfOrigin:
+          type: string
+          description: Numeric country code as a string, e.g. "392".
+        countryCode:
+          oneOf:
+            - type: string
+            - type: boolean
+          description: |
+            false on 84.6% of probed products (2557/3024); a 2-letter,
+            uppercase ISO-3166-1-alpha-2-style country code string on the
+            other 15.4% (467/3024). Observed string values: CN, JP, NZ, SV,
+            TW, US, VN, ZA. Always paired with a matching country value (see
+            below) - never a string on one and boolean on the other for the
+            same product.
+        country:
+          oneOf:
+            - type: string
+            - type: boolean
+          description: |
+            false on 84.6% of probed products (2557/3024); an uppercase
+            country name string on the other 15.4% (467/3024), paired
+            1:1 with countryCode. Observed string values: CHINA, EL SALVADOR,
+            JAPAN, NEW ZEALAND, "SØR-AFRIKA" (Norwegian for South Africa,
+            paired with countryCode ZA), TAIWAN, USA, VIETNAM.
+        commodityCode:
+          type: string
+        retailCurrency:
+          type: string
+        retailPrice:
+          type: number
+          description: Present on ~99.9% of probed items.
+        psRetailCurrency:
+          type: string
+          description: Pre-sale retail currency.
+        psRetailPrice:
+          type: number
+          description: Pre-sale retail price. Present on ~99.9% of probed items.
+        priceNOK:
+          type: number
+          description: Present on ~99.9% of probed items.
+        priceSEK:
+          type: number
+          description: Present on ~99.9% of probed items.
+        priceDKK:
+          type: number
+          description: Present on ~99.9% of probed items.
+        priceGBP:
+          type: number
+          description: Present on ~99.9% of probed items.
+        priceEUR:
+          type: number
+          description: Present on ~99.9% of probed items.
+        priceCHF:
+          type: number
+          description: Present on ~99.9% of probed items.
+        psPriceNOK:
+          type: number
+          description: Pre-sale price. Present on ~99.9% of probed items.
+        psPriceSEK:
+          type: number
+          description: Pre-sale price. Present on ~99.9% of probed items.
+        psPriceDKK:
+          type: number
+          description: Pre-sale price. Present on ~99.9% of probed items.
+        psPriceGBP:
+          type: number
+          description: Pre-sale price. Present on ~99.9% of probed items.
+        psPriceEUR:
+          type: number
+          description: Pre-sale price. Present on ~99.9% of probed items.
+        psPriceCHF:
+          type: number
+          description: Pre-sale price. Present on ~99.9% of probed items.
+        dealerCurrency:
+          type: string
+        dealerPrice:
+          type: number
+          description: Dealer (wholesale) price.
+        dealerEurPrice:
+          type: number
+        dealerRepairPrice:
+          type: number
+        dealerPresaleCurrency:
+          oneOf:
+            - type: string
+            - type: boolean
+          description: Usually a currency code; observed as false (no presale currency set) on a small number of items.
+        dealerPresalePrice:
+          type: number
+        dealerAsapCurrency:
+          type: string
+          description: Present on 99.7% of probed products (3015/3024).
+        dealerAsapPrice:
+          type: number
+          description: Present on 99.7% of probed products (3015/3024).
+        dealerPriceFull:
+          type: number
+          description: Present on 2.0% of probed products (59/3024).
+        discountPercent:
+          type: number
+          description: Present on 2.0% of probed products (59/3024).
+        pricelist:
+          type: object
+          additionalProperties: true
+          description: |
+            Internal price-list map, keyed by price-list number (e.g. "5",
+            "44"). Entry shape varies - all 3 shapes were observed across the
+            probed corpus: the full shape (prislistenr, artikkelnr, pris as a
+            string e.g. "98.4", valutakode, startdato, sluttdato, hash), a
+            partial shape with only prislistenr/pris/valutakode, or an empty
+            object for a price list with no entry for this article.
+        pricelistAsap:
+          type: object
+          additionalProperties: true
+          description: |
+            Same key structure as pricelist. Every entry observed here was
+            in the full shape (prislistenr, artikkelnr, pris, valutakode,
+            startdato, sluttdato, hash) - the partial and empty shapes seen
+            on pricelist were not observed here, though a larger sample
+            might still show them.
+        pricelistPresale:
+          type: object
+          additionalProperties: true
+          description: |
+            Same key structure as pricelist. Entry shape varies: most
+            entries carry only pris (a number here, not a string) and
+            valutakode, but the full pricelist shape (prislistenr,
+            artikkelnr, pris, valutakode, startdato, sluttdato, hash) was
+            also observed here (e.g. articleno 12023-016-07's price-list 5
+            and 44 entries), as was an empty object.
+        pricelistPresaleAsap:
+          type: object
+          additionalProperties: true
+          description: |
+            Same key structure as pricelistPresale. Every entry observed
+            here was either the pris+valutakode shape or an empty object -
+            the full pricelist shape seen on pricelistPresale was not
+            observed here.
+        pricelistCombo:
+          type: object
+          additionalProperties: true
+          description: |
+            Rare (present on 1.4% of probed products, 43/3024): a flat
+            object mirroring priceNOK/priceSEK/priceDKK/priceGBP/priceEUR/
+            priceCHF, seen on combo/bundle articles.
+        images:
+          $ref: "#/components/schemas/Images"
+        imgs:
+          type: object
+          additionalProperties: true
+          description: |
+            Raw upload metadata for each image, keyed by a small integer id.
+            Each entry has name, encoding, mimetype, ext, newFilename, s3Link,
+            s3ThumbLink, bytes and sort. images is the derived, ready-to-use
+            form of this data. Present on 95.7% of probed products
+            (2894/3024) - note this is notably less than images (100%, see
+            below), i.e. some products have images without raw imgs metadata.
+        files:
+          type: object
+          additionalProperties: true
+          description: |
+            Same shape as imgs, but for non-image attachments (video files
+            were the only kind observed). Rare - present on 0.8% of probed
+            products (24/3024).
+        imageRefPrefixes:
+          type: object
+          properties:
+            small: { type: string }
+            medium: { type: string }
+            large: { type: string }
+            xlarge: { type: string }
+            xxlarge: { type: string }
+          description: URL prefix for each image size, without the filename.
+        youtubeNOK:
+          type: string
+        youtubeSEK:
+          type: string
+        youtubeDKK:
+          type: string
+        youtubeGBP:
+          type: string
+        youtubeEUR:
+          type: string
+        youtubeCHF:
+          type: string
+        youtube2NOK:
+          type: string
+        youtube2SEK:
+          type: string
+        youtube2DKK:
+          type: string
+        youtube2GBP:
+          type: string
+        youtube2EUR:
+          type: string
+        youtube2CHF:
+          type: string
+        youtube3NOK:
+          type: string
+        youtube3SEK:
+          type: string
+        youtube3DKK:
+          type: string
+        youtube3GBP:
+          type: string
+        youtube3EUR:
+          type: string
+        youtube3CHF:
+          type: string
+        link:
+          type: string
+          description: DealerWeb product page URL.
+        linkConsumerWeb:
+          type: string
+          description: Public flyfisheurope.com product page URL.
+        apiLinkToProductGroup:
+          type: string
+          description: Self-referential /api/products/?nameDisplay=...&unique=true URL for this product's family.
+        apiLinkToProductMainCategory:
+          type: string
+          description: Self-referential /api/products/?mainCat=...&unique=true URL for this product's main category.
+        related:
+          type: object
+          description: |
+            Cross-references; empty object/empty arrays on most items, but
+            all 3 sub-fields have real, non-empty data on a minority of
+            products: articles on 6.5% (196/3024, e.g. a wader size-chart
+            article), products on 1.4% (42/3024) and categories on 0.2%
+            (7/3024).
+          properties:
+            articles:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  title: { type: string }
+                  text:
+                    type: string
+                    description: Present on some, but not all, related.articles entries.
+              description: |
+                e.g. {"id": 3531, "title": "Simms G4Z_2024 Size Chart"} or
+                {"id": 2963, "text": "2963: Simms Women's G3 Wader Size Chart", "title": "..."}.
+            products:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  name: { type: string }
+                  articleno: { type: string }
+              description: |
+                e.g. {"id": 619648, "name": "Magnitude Infinity Buckskin/10' Clear Tip WF-3", "articleno": "145213"}.
+            categories:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  name: { type: string }
+                  text: { type: string }
+              description: |
+                e.g. {"id": 7362, "text": "365: SA Accessories", "name": "SA Accessories"}.
+        articlesTech:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              text: { type: string }
+              title: { type: string }
+          description: Rare - present on only 1 of 3024 distinct products probed.
+        supplierOrderLines:
+          type: array
+          items:
+            type: array
+            description: A [date string, positive integer] tuple, e.g. ["2027-01-02", 12].
+          description: |
+            Incoming purchase-order lines. Non-empty on 13.9% of probed
+            products (419/3024); an empty array otherwise. Every non-empty
+            entry observed was a 2-element [date string, integer] tuple, and
+            the integer was always positive across every occurrence in the
+            probed corpus (424 distinct entries; range 1-804, e.g.
+            ["2027-01-02", 12]) - no negative or zero quantity was ever seen.
+        customerOrderLines:
+          type: array
+          items:
+            type: array
+            description: A [date string, negative integer] tuple, e.g. ["2026-09-09", -1].
+          description: |
+            Outstanding customer-order lines. Non-empty on 13.6% of probed
+            products (411/3024); an empty array otherwise. Same tuple shape
+            as supplierOrderLines, but the integer was always negative across
+            every occurrence in the probed corpus (513 distinct entries;
+            range -50 to -1, e.g. ["2026-09-09", -1]) - no positive or zero
+            quantity was ever seen.
+        warehouse:
+          type: string
+        updatedFields:
+          type: object
+          additionalProperties: true
+          description: |
+            Internal change-tracking metadata: maps field names (including
+            dotted paths like "pricelistPresale.5.pris") to a Unix timestamp
+            of the last update. Not documented in detail; treat as opaque.
+        updatedLastValue:
+          type: object
+          additionalProperties: true
+          description: |
+            Internal change-tracking metadata: maps the same field names from
+            updatedFields to their previous value. Not documented in detail;
+            treat as opaque.
+        updatedDate:
+          type: string
+          format: date-time
+        sizes:
+          type: array
+          items: { type: string }
+          description: Documented as present only with unique=true. NOT verified live (see the unique parameter on listProducts).
+        colors:
+          type: array
+          items: { type: string }
+          description: Documented as present only with unique=true. NOT verified live (see the unique parameter on listProducts).
+        imgRef:
+          type: object
+          additionalProperties: { type: integer }
+          description: Documented as present only with unique=true, mapping colour name to an image reference id. NOT verified live (see the unique parameter on listProducts).
+    Images:
+      type: object
+      description: |
+        Present on all 3024 distinct products probed (100%) - every raw,
+        non-deduplicated occurrence across all 42 probe files had this
+        field.
+      properties:
+        small:
+          type: string
+          description: 80x80 thumbnail URL.
+        medium:
+          type: string
+          description: 400px-wide URL.
+        large:
+          type: string
+          description: 800px-wide URL.
+        xlarge:
+          type: string
+          description: 1024px-wide URL.
+        xxlarge:
+          type: string
+          description: 1280px-wide URL.
+        list:
+          type: array
+          description: Additional images beyond the primary one, each with the same 5 sizes.
+          items:
+            type: object
+            properties:
+              small: { type: string }
+              medium: { type: string }
+              large: { type: string }
+              xlarge: { type: string }
+              xxlarge: { type: string }
+    Basket:
+      type: object
+      description: |
+        The dealer's current basket. Verified live via
+        GET /api/baskets/ and GET /api/baskets/?presale=1 (identical
+        response body); the test account's basket had zero lines, so
+        this schema reflects an empty-basket response. Pre-existing
+        (pre-verification) documentation in baskets.md additionally
+        showed a top-level `currency` field (e.g. "NOK") on a populated
+        basket; that field was not present in the verified (empty)
+        response and could not be confirmed live - it may only appear
+        once the basket has lines, or the old documentation may be
+        stale.
+      properties:
+        lines:
+          type: array
+          description: |
+            Observed as an empty array ([]) for the test account's
+            basket. See BasketLine for the (unverified) shape of a
+            populated line.
+          items:
+            $ref: "#/components/schemas/BasketLine"
+        pricelistno:
+          type: integer
+        customerno:
+          type: integer
+        emailaddress:
+          type: string
+          format: email
+        companyName:
+          type: string
+        qty:
+          type: integer
+          description: Total quantity across all lines. Observed as 0 with an empty basket.
+        total:
+          type: number
+          description: Dealer total. Observed as 0 with an empty basket.
+        retailTotal:
+          type: number
+          description: Retail total. Observed as 0 with an empty basket.
+        summary:
+          type: object
+          description: |
+            Observed as an empty object ({}) with an empty basket; its
+            structure with a populated basket was not verified live.
+    BasketLine:
+      type: object
+      description: |
+        Not verified live: the test account's basket was empty. Shape
+        taken from the previous documentation.
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        qty: { type: integer }
+        currency: { type: string }
+        price: { type: number, description: Dealer price per unit after discount }
+        fullPrice: { type: number, description: Dealer price per unit before discount }
+        discount: { type: number }
+        retailPrice: { type: number }
+        total: { type: number }
+        eurPrice: { type: number }
+        eurFullPrice: { type: number }
+        eurTotal: { type: number }
+        date: { type: string, format: date-time }
+        addedBy: { type: string }
+        addedFrom: { type: string }
+        info: { type: string, nullable: true }
+        object:
+          $ref: "#/components/schemas/Product"
+    DealerInfo:
+      type: object
+      description: |
+        Response envelope for GET /api/dealers/info. See the operation
+        description on `/api/dealers/info` for verification notes.
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            customerno:
+              type: integer
+            name:
+              type: string
+            country:
+              type: string
+            email:
+              type: string
+              format: email
+            store:
+              type: object
+              description: The dealer's public storefront/contact details.
+              properties:
+                name: { type: string }
+                address1: { type: string }
+                address2: { type: string }
+                zip: { type: string }
+                city: { type: string }
+                country: { type: string }
+                phone: { type: string }
+                fax: { type: string }
+                email: { type: string, format: email }
+                url: { type: string }
+                opening_hours_mon: { type: string }
+                opening_hours_tue: { type: string }
+                opening_hours_wed: { type: string }
+                opening_hours_thu: { type: string }
+                opening_hours_fri: { type: string }
+                opening_hours_sat: { type: string }
+                opening_hours_sun: { type: string }
+                google_maps_lookup:
+                  type: object
+                  description: Cached Google Geocoding API result for the store address above.
+                  properties:
+                    street_number: { type: string }
+                    route: { type: string }
+                    postal_town: { type: string }
+                    administrative_area_level_2: { type: string }
+                    administrative_area_level_1: { type: string }
+                    country: { type: string }
+                    postal_code: { type: string }
+                    geometry:
+                      type: object
+                      properties:
+                        location:
+                          type: object
+                          properties:
+                            lat: { type: number }
+                            lng: { type: number }
+                        location_type:
+                          type: string
+                        viewport:
+                          type: object
+                          properties:
+                            northeast:
+                              type: object
+                              properties:
+                                lat: { type: number }
+                                lng: { type: number }
+                            southwest:
+                              type: object
+                              properties:
+                                lat: { type: number }
+                                lng: { type: number }
+                    updated:
+                      type: string
+                      description: Timestamp of the geocoding lookup. Observed without a timezone suffix, unlike other timestamps in this response.
+            deliveryaddress1:
+              type: string
+            deliveryname:
+              type: string
+            deliverypostcode:
+              type: string
+            deliverypostoffice:
+              type: string
+            currency:
+              type: string
+            agent_dealers:
+              type: array
+              description: Sub-dealer accounts visible to agent accounts. Structure intentionally not documented.
+              items:
+                type: object
+                additionalProperties: true
+            emails:
+              type: object
+              additionalProperties: true
+              description: |
+                Keyed by the dealer's own login email address with "@" and
+                "." replaced by "_" (9 keys observed on the probed account,
+                including secondary/legacy addresses). Each entry is a
+                per-login-email activity record: activity, forgotten
+                (array), forgottens, last_activity, last_forgotten,
+                last_login, login, login_failed, logins (array of Unix
+                timestamps), logins_failed (array), newsletter,
+                newsletter_subscribed, newsletter_subscribed_from,
+                newsletter_subscribed_user_agent, visits,
+                last_login_failed, current_login_failed, isOnline (boolean),
+                api_activity, last_api_activity, isOnlineApi (boolean).
+            isAdmin:
+              type: boolean
+            is_agent:
+              type: integer
+              description: 0 or 1. 1 on the probed account, which is why `agent_dealers` is populated.
+            isDealerAdmin:
+              type: boolean
+            hasAccessToCombos:
+              type: integer
+            acceptConsumerOrders:
+              type: integer
+            settings:
+              type: object
+              properties:
+                inboxEmailNotifications: { type: boolean }
+                darkmode: { type: integer }
+                language: { type: string }
+                display: { type: string }
+                receiveDailyAvailabilityFiles: { type: boolean }
+                receiveDailyAvailabilityFilesEmail: { type: string, format: email }
+                notificationEmail1: { type: string, format: email }
+                notificationEmail2: { type: string, format: email }
+                notificationEmail3: { type: string, format: email }
+            favorite:
+              type: object
+              properties:
+                product:
+                  type: object
+                  additionalProperties: { type: integer }
+                  description: Keyed by product article number (string). Value observed as 1 for every one of the 82 entries on the probed account - a boolean-style "favourited" flag stored as an integer.
+            brands:
+              type: object
+              additionalProperties: true
+              description: |
+                Keyed by brand slug (matching Brand.brandno, e.g. "simms";
+                30 keys observed on the probed account). Each value is
+                `{ "allowed": boolean }`, indicating whether this dealer is
+                permitted to view/order that brand.
+            backorders:
+              type: object
+              description: Observed as an empty object ({}) on the probed account.
+            backorderDeleteReq:
+              type: object
+              additionalProperties: true
+              description: |
+                Keyed by an internal backorder/request id. Each value is
+                itself a map from article number to a Unix timestamp
+                (seconds) of the delete request. Only one entry was present
+                on the probed account.
+            currentEmail:
+              type: string
+              format: email
+            inboxSignature:
+              type: string
+            shipping:
+              type: object
+              properties:
+                addresses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      customerno: { type: string }
+                      id: { type: string, description: A UUID. }
+                      recipient: { type: string }
+                      street: { type: string }
+                      street2: { type: string }
+                      streetNumber: { type: string }
+                      postalCode: { type: string }
+                      city: { type: string }
+                      country: { type: string }
+                      selectedAddress: { type: integer }
+                      created: { type: string, format: date-time }
+                      log:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            action: { type: string }
+                            dealer: { type: integer }
+                            dealerName: { type: string }
+                            dealerEmail: { type: string, format: email }
+                contacts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      customerno: { type: string }
+                      id: { type: string, description: A UUID. }
+                      name: { type: string }
+                      phone: { type: string }
+                      email: { type: string, format: email }
+                      selectedContact: { type: integer }
+                      created: { type: string, format: date-time }
+                      log:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            action: { type: string }
+                            dealer: { type: integer }
+                            dealerName: { type: string }
+                            dealerEmail: { type: string, format: email }
+            termsAndConditions:
+              type: object
+              additionalProperties: true
+              description: |
+                Keyed by a terms-and-conditions id ("1", "2" observed on
+                the probed account). Each entry has `article` (the CMS
+                article: id, title, an optional ingress, body, create_date,
+                updated, tag, tags, status, version, images), `acceptedTerms`
+                (the accepted text, verbatim) and `acceptedDate` (ISO 8601).
+            csvDownloads:
+              type: object
+              additionalProperties: { type: integer }
+              description: Keyed by brand slug (one empty-string key was also observed). Value is a running count of CSV price-list downloads for that brand from DealerWeb.
+            csvAdminDownloads:
+              type: object
+              additionalProperties: { type: integer }
+              description: Same shape as csvDownloads, for admin-initiated downloads.
+            useragent:
+              type: object
+              description: |
+                Client/browser-detection flags and metadata, apparently
+                derived from the User-Agent header of the request that most
+                recently updated this record. On the probed account (an
+                API/server-to-server call routed through CloudFront) every
+                boolean was false except isAuthoritative, and
+                browser/version/os/platform were "unknown".
+              properties:
+                isYaBrowser: { type: boolean }
+                isAuthoritative: { type: boolean }
+                isMobile: { type: boolean }
+                isMobileNative: { type: boolean }
+                isTablet: { type: boolean }
+                isiPad: { type: boolean }
+                isiPod: { type: boolean }
+                isiPhone: { type: boolean }
+                isiPhoneNative: { type: boolean }
+                isAndroid: { type: boolean }
+                isAndroidNative: { type: boolean }
+                isBlackberry: { type: boolean }
+                isOpera: { type: boolean }
+                isIE: { type: boolean }
+                isEdge: { type: boolean }
+                isIECompatibilityMode: { type: boolean }
+                isSafari: { type: boolean }
+                isFirefox: { type: boolean }
+                isWebkit: { type: boolean }
+                isChrome: { type: boolean }
+                isKonqueror: { type: boolean }
+                isOmniWeb: { type: boolean }
+                isSeaMonkey: { type: boolean }
+                isFlock: { type: boolean }
+                isAmaya: { type: boolean }
+                isPhantomJS: { type: boolean }
+                isEpiphany: { type: boolean }
+                isDesktop: { type: boolean }
+                isWindows: { type: boolean }
+                isLinux: { type: boolean }
+                isLinux64: { type: boolean }
+                isMac: { type: boolean }
+                isChromeOS: { type: boolean }
+                isBada: { type: boolean }
+                isSamsung: { type: boolean }
+                isRaspberry: { type: boolean }
+                isBot: { type: boolean }
+                isCurl: { type: boolean }
+                isAndroidTablet: { type: boolean }
+                isWinJs: { type: boolean }
+                isKindleFire: { type: boolean }
+                isSilk: { type: boolean }
+                isCaptive: { type: boolean }
+                isSmartTV: { type: boolean }
+                isUC: { type: boolean }
+                isFacebook: { type: boolean }
+                isAlamoFire: { type: boolean }
+                isElectron: { type: boolean }
+                silkAccelerated: { type: boolean }
+                browser: { type: string }
+                version: { type: string }
+                os: { type: string }
+                platform: { type: string }
+                geoIp:
+                  type: object
+                  description: Observed as an empty object ({}) on the probed account.
+                source: { type: string }
+                isWechat: { type: boolean }
+    PosSale:
+      type: object
+      description: |
+        Verified live from GET /api/pos/sales/ (15 records for the test
+        account) and GET /api/pos/sales/?limit=2 (same shape, truncated).
+        Properties are exactly the fields observed on every one of the 15
+        records; none were missing across the set. Used both as the
+        response shape for listPosSales/getPosSale and, per the Node SDK's
+        posAddSale/posSales(add) usage, as the request body shape for the
+        unverified addPosSale operation - see that operation's description.
+      properties:
+        id: { type: integer }
+        dealer:
+          type: integer
+          description: Your dealer/account id.
+        products:
+          type: array
+          description: |
+            Line items included in the sale. Each item has the same shape
+            as PosProduct, plus up to four sale-line-specific fields (qty,
+            return, discount, comment) that were present on only 1 of the
+            44 line items observed across the 15 probed sales - see each
+            property's description below.
+          items:
+            allOf:
+              - $ref: "#/components/schemas/PosProduct"
+              - type: object
+                properties:
+                  qty:
+                    type: string
+                    description: |
+                      Observed once, as the string "2". Not present on the
+                      other 43 observed line items (each of those
+                      represented a quantity of 1 as its own array entry
+                      instead).
+                  return:
+                    type: boolean
+                    description: Observed once, as false. Not present on the other 43 observed line items.
+                  discount:
+                    type: string
+                    description: Observed once, as an empty string (""). Not present on the other 43 observed line items.
+                  comment:
+                    type: string
+                    description: Observed once, as an empty string (""). Not present on the other 43 observed line items.
+        totals:
+          type: object
+          description: Per-sale totals, distinct from the top-level total/tax/currency/discount* fields below.
+          properties:
+            subTotal: { type: number }
+            total: { type: number }
+            qty: { type: number }
+            discountAmount: { type: number }
+            discount: { type: number }
+            tax: { type: number }
+            currency: { type: string, example: NOK }
+            totalPaid: { type: number }
+        total: { type: number }
+        tax: { type: number }
+        currency: { type: string, example: NOK }
+        discountAmount: { type: number }
+        discount: { type: number }
+        email:
+          type: string
+          nullable: true
+          description: Observed as null on all 15 probed records.
+        fname:
+          type: string
+          nullable: true
+          description: Observed as null on all 15 probed records.
+        lname:
+          type: string
+          nullable: true
+          description: Observed as null on all 15 probed records.
+        cellphone:
+          type: string
+          nullable: true
+          description: Observed as null on all 15 probed records.
+        note:
+          type: string
+          nullable: true
+          description: Observed as null on all 15 probed records.
+        paymentMethod:
+          type: string
+          description: 'Observed values: cash, card.'
+        paymentMethods:
+          type: array
+          items:
+            type: object
+            properties:
+              paymentMethod: { type: string }
+              total: { type: number }
+        created: { type: string, format: date-time }
+        updated: { type: string, format: date-time }
+        createdDate: { type: string, format: date-time }
+        updatedDate: { type: string, format: date-time }
+      example:
+        id: 158
+        dealer: 999999
+        products:
+          - id: 23446
+            dealer: 999999
+            articleno: R8554
+            tradeItemNumber: "816428012996"
+            brand: scott
+            name: Scott Radian 8'6'' #5 4-pc
+            inStock: -1
+            retailPrice: 7999
+            retailCurrency: NOK
+            tax: 25
+            costPrice: 3839.5
+            category: Radian Series
+            images:
+              small: "https://dealer.flyfisheurope.com/80x80/product_1_21721.jpg"
+              medium: "https://dealer.flyfisheurope.com/400x/product_1_21721.jpg"
+              large: "https://dealer.flyfisheurope.com/800x/product_1_21721.jpg"
+            uploadedFiles: []
+            color: null
+            size: null
+            itemCategory: Radian Series
+            mainCategory: Radian Series
+            intermediateCategory: null
+            favorite: false
+        totals:
+          subTotal: 7999
+          total: 7999
+          qty: 1
+          discountAmount: 0
+          discount: 0
+          tax: 1599.8
+          currency: NOK
+          totalPaid: 7999
+        total: 7999
+        tax: 1599.8
+        currency: NOK
+        discountAmount: 0
+        discount: 0
+        email: null
+        fname: null
+        lname: null
+        cellphone: null
+        note: null
+        paymentMethod: cash
+        paymentMethods:
+          - paymentMethod: cash
+            total: 7999
+        created: "2019-03-22T11:00:43.804Z"
+        updated: "2019-03-22T11:00:43.804Z"
+        createdDate: "2019-03-22T11:00:43.804Z"
+        updatedDate: "2019-03-22T11:00:43.804Z"
+    PosProduct:
+      type: object
+      description: |
+        Verified live from GET /api/pos/products/ (17 records for the test
+        account) and GET /api/pos/products/?limit=2 (same shape, truncated),
+        plus the products embedded in GET /api/pos/sales/ sale records.
+        Properties are exactly the fields observed; several are nullable or
+        optional because the live data was inconsistent across records -
+        see each property's description. brand is free text as entered at
+        the point of sale, not the normalised brand slug used elsewhere in
+        this API - observed casing/spelling varied: "scott", "simms",
+        "Simms", "SIMMS FISHING PRODUCTS", "smith creek", "rodmount",
+        "Guideline". Used both as the response shape for
+        listPosProducts/getPosProduct and, per the Node SDK's
+        posAddProduct/posEditProduct usage, as the request body shape for
+        the unverified addPosProduct/updatePosProduct operations - see
+        those operations' descriptions.
+      properties:
+        id:
+          type: integer
+          description: Point-of-sale product id (distinct from the catalog articleno).
+        dealer:
+          type: integer
+          description: Your dealer/account id.
+        articleno: { type: string }
+        tradeItemNumber:
+          type: string
+          description: GTIN/EAN barcode.
+        brand: { type: string }
+        name: { type: string }
+        inStock:
+          type: integer
+          description: |
+            Observed only as negative integers (-1 to -7) across the 17
+            probed records; the meaning is not documented by Flyfish
+            Europe - do not assume this is a literal stock count.
+        retailPrice: { type: number }
+        retailCurrency: { type: string, example: NOK }
+        tax: { type: integer, description: Tax rate in percent. }
+        costPrice:
+          type: number
+          nullable: true
+          description: Absent on 3 of the 17 probed records.
+        category:
+          type: string
+          nullable: true
+          description: Null on 1 of the 17 probed records.
+        images:
+          type: object
+          nullable: true
+          description: |
+            Absent on 1 of the 17 probed records. Unlike this API's shared
+            Images schema, only small/medium/large were observed here - no
+            xlarge, xxlarge or list.
+          properties:
+            small: { type: string }
+            medium: { type: string }
+            large: { type: string }
+        uploadedFiles:
+          type: array
+          items: {}
+          description: Observed as an empty array ([]) on every probed record; item shape not verified.
+        color: { type: string, nullable: true }
+        size: { type: string, nullable: true }
+        itemCategory:
+          type: string
+          nullable: true
+          description: Null on 1 of the 17 probed records.
+        mainCategory:
+          type: string
+          nullable: true
+          description: Null on 5 of the 17 probed records.
+        intermediateCategory: { type: string, nullable: true }
+        favorite: { type: boolean }
+      example:
+        id: 23446
+        dealer: 999999
+        articleno: R8554
+        tradeItemNumber: "816428012996"
+        brand: scott
+        name: Scott Radian 8'6'' #5 4-pc
+        inStock: -1
+        retailPrice: 7999
+        retailCurrency: NOK
+        tax: 25
+        costPrice: 3839.5
+        category: Radian Series
+        images:
+          small: "https://dealer.flyfisheurope.com/80x80/product_1_21721.jpg"
+          medium: "https://dealer.flyfisheurope.com/400x/product_1_21721.jpg"
+          large: "https://dealer.flyfisheurope.com/800x/product_1_21721.jpg"
+        uploadedFiles: []
+        color: null
+        size: null
+        itemCategory: Radian Series
+        mainCategory: Radian Series
+        intermediateCategory: null
+        favorite: false
+security:
+  - bearerToken: []

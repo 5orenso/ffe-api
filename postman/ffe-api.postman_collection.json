@@ -1,0 +1,667 @@
+{
+  "info": {
+    "name": "Flyfish Europe Dealer API",
+    "description": "Set the token variable to your DealerWeb API token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://dealer.flyfisheurope.com"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "login",
+      "item": [
+        {
+          "name": "Exchange email and password for an API token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"pass\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "brands",
+      "item": [
+        {
+          "name": "List all brands available to your dealer account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/brands/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "brands",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get one brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/brands/:brandno",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "brands",
+                ":brandno"
+              ],
+              "variable": [
+                {
+                  "key": "brandno",
+                  "value": "simms",
+                  "description": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Maximum number of categories to return. The default of 100 is inferred:\n`level=intermediate` (170+ candidate categories) returned exactly 100 items\nwith no limit given, a round number consistent with a page-size cap, while\n`level=sub` (57 total) and the unfiltered/`level=main` call (13 total) both\ncame back under 100 and were not capped.\n"
+                },
+                {
+                  "key": "offset",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Pagination offset into the result list (ordered by `sort`). Verified:\n`limit=2&offset=0` returned categoryno 101, 102; `limit=2&offset=2`\nreturned categoryno 104, 105 - the next two items in `sort` order.\n"
+                },
+                {
+                  "key": "brand",
+                  "value": "simms",
+                  "disabled": true,
+                  "description": "Intended to filter by brand identifier (matches Brand.brandno). Not\nconclusively verified: `brand=simms` returned results byte-identical to\nthe unfiltered list (same 13 categories), but every category this dealer\naccount can see is already brand simms, so this probe cannot distinguish\n\"brand filters and simms matched everything\" from \"brand has no effect\".\nCase-sensitivity was not tested.\n"
+                },
+                {
+                  "key": "level",
+                  "value": "",
+                  "disabled": true,
+                  "description": "main returned 13 categories (parent: null), intermediate returned 100\n(likely capped by the default limit - see limit), sub returned 57, all\nwith a non-null parent.\n"
+                },
+                {
+                  "key": "parent",
+                  "value": "101",
+                  "disabled": true,
+                  "description": "Only categories whose parent equals this categoryno. Verified:\nparent=101 returned 14 categories, all level intermediate and all with\nparent: 101.\n"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get one category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/:categoryno",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                ":categoryno"
+              ],
+              "variable": [
+                {
+                  "key": "categoryno",
+                  "value": "101",
+                  "description": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "item": [
+        {
+          "name": "List or search products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Number of products to return. Verified default is 25: an\nunfiltered request with no limit given returned exactly 25 items.\nNo upper cap was found - limit=1000 returned 1000 items and\nlimit=3000 returned 3000 items, both un-truncated.\n"
+                },
+                {
+                  "key": "offset",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Pagination offset. Verified: limit=2&offset=0 returned articleno\n1113000, 1113001; limit=2&offset=2 returned 1113002, 1113003 - the\nnext two items in the same order.\n"
+                },
+                {
+                  "key": "brand",
+                  "value": "simms",
+                  "disabled": true,
+                  "description": "brandno from /api/brands/. Verified: brand=simms returned only\nbrandno \"Simms\" items, a strict subset of the multi-brand\nunfiltered list.\n"
+                },
+                {
+                  "key": "maingroup",
+                  "value": "simms headwear",
+                  "disabled": true,
+                  "description": "Case-insensitive exact match against \"<brandno> <maingroupname>\"\n(e.g. brand simms + maingroupname \"Headwear\" -> \"simms headwear\").\nVerified: maingroup=simms%20headwear and maingroup=Simms%20Headwear\nboth returned the same 2 Headwear/Simms items; maingroup=headwear\n(no brand prefix) returned zero results, so the brand prefix is\nrequired for this parameter (unlike intgroup/subgroup below).\n"
+                },
+                {
+                  "key": "intgroup",
+                  "value": "beanies",
+                  "disabled": true,
+                  "description": "Case-insensitive exact match against intermediategroupname, with\nno brand prefix. Verified: intgroup=beanies and intgroup=BEANIES\nboth matched the Simms Headwear > Beanies group; the partial value\nintgroup=bean matched nothing (exact match, not substring); the\nbrand-prefixed intgroup=simms%20beanies also matched nothing.\n"
+                },
+                {
+                  "key": "subgroup",
+                  "value": "wms g3 stockingfoots",
+                  "disabled": true,
+                  "description": "Case-insensitive exact match against subgroupname, with no brand\nprefix - same pattern as intgroup. Verified:\nsubgroup=wms%20g3%20stockingfoots matched all 13 items of that\nSimms Women's > Waders > Wms G3 Stockingfoots sub-group.\n"
+                },
+                {
+                  "key": "mainCat",
+                  "value": "101",
+                  "disabled": true,
+                  "description": "maingroupno. Verified: mainCat=101 returned only maingroupno 101\n(Simms Waders) items.\n"
+                },
+                {
+                  "key": "intCat",
+                  "value": "1033",
+                  "disabled": true,
+                  "description": "intermediategroupno. Verified: intCat=1033 returned only\nintermediategroupno 1033 (Simms Headwear > Beanies) items.\n"
+                },
+                {
+                  "key": "subCat",
+                  "value": "10096",
+                  "disabled": true,
+                  "description": "subgroupno. Verified: subCat=10096 returned only subgroupno 10096\n(Simms Women's > Waders > Wms G3 Stockingfoots) items.\n"
+                },
+                {
+                  "key": "gtin",
+                  "value": "4560111388931",
+                  "disabled": true,
+                  "description": "tradeItemNumber (barcode), exact match. Verified with two real\nvalues: gtin=782420002818 returned exactly the one Loon item with\nthat tradeItemNumber, and gtin=4560111388931 returned exactly the\none C&F item (articleno 1113000) with that tradeItemNumber.\n"
+                },
+                {
+                  "key": "articleNoIn",
+                  "value": "1113000,1113001",
+                  "disabled": true,
+                  "description": "Comma-separated list of articleno values. Verified:\narticleNoIn=1113000,1113001 returned both matching items, in that\norder.\n"
+                },
+                {
+                  "key": "search",
+                  "value": "simms waders",
+                  "disabled": true,
+                  "description": "Free-text search. Verified: search=simms%20waders returned a\ndifferent, narrower result set than the unfiltered list (a Simms\nwader product, versus the unfiltered list's unrelated top items).\n"
+                },
+                {
+                  "key": "unique",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Documented (and implied by every product's own\napiLinkToProductGroup, which always appends &unique=true) to group\nsize/colour variants into one product with sizes, colors and\nimgRef arrays. NOT verified live: every combination tried\n(unique=true alone; with limit=1; narrowed to a single item via\nmainCat, brand, gtin, articleNoIn or nameDisplay) consistently\nreturned HTTP 504 Gateway Timeout with an empty body. unique=false\nwas verified to behave identically to omitting the parameter.\n"
+                },
+                {
+                  "key": "isNew",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filters on the is_new flag. Verified in both directions:\nisNew=1 returned only is_new: 1 items and isNew=0 returned only\nis_new: 0 items.\n"
+                },
+                {
+                  "key": "nameDisplay",
+                  "value": "30th Anniversary Boat Box",
+                  "disabled": true,
+                  "description": "Exact match against nameDisplay. Works without unique=true, and\nreturns every colour/size variant sharing that marketing name (not\njust one). Verified: nameDisplay=Bales%20Beach%20-%20Polycarbonate\nreturned all 17 variants sharing that nameDisplay.\n"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get one product variant by articleno",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/:articleno",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                ":articleno"
+              ],
+              "variable": [
+                {
+                  "key": "articleno",
+                  "value": "1113000",
+                  "description": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "baskets",
+      "item": [
+        {
+          "name": "Get your current basket",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/baskets/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "baskets",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "presale",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Enable pre-season mode. Verified: for the test account's\n(empty) basket, this returned a response identical to\nomitting the parameter.\n"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dealers",
+      "item": [
+        {
+          "name": "Information about the dealer account the token belongs to",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/dealers/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dealers",
+                "info"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pos-sales",
+      "item": [
+        {
+          "name": "List sales reported from your point of sale",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/sales/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "sales",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Report a sale from your point of sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/sales/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "sales",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"\",\n  \"dealer\": \"\",\n  \"products\": \"\",\n  \"totals\": \"\",\n  \"total\": \"\",\n  \"tax\": \"\",\n  \"currency\": \"\",\n  \"discountAmount\": \"\",\n  \"discount\": \"\",\n  \"email\": \"\",\n  \"fname\": \"\",\n  \"lname\": \"\",\n  \"cellphone\": \"\",\n  \"note\": \"\",\n  \"paymentMethod\": \"\",\n  \"paymentMethods\": \"\",\n  \"created\": \"\",\n  \"updated\": \"\",\n  \"createdDate\": \"\",\n  \"updatedDate\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get one reported sale",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/sales/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "sales",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "158",
+                  "description": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pos-products",
+      "item": [
+        {
+          "name": "List your own point-of-sale products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "products",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create a point-of-sale product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "products",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"\",\n  \"dealer\": \"\",\n  \"articleno\": \"\",\n  \"tradeItemNumber\": \"\",\n  \"brand\": \"\",\n  \"name\": \"\",\n  \"inStock\": \"\",\n  \"retailPrice\": \"\",\n  \"retailCurrency\": \"\",\n  \"tax\": \"\",\n  \"costPrice\": \"\",\n  \"category\": \"\",\n  \"images\": \"\",\n  \"uploadedFiles\": \"\",\n  \"color\": \"\",\n  \"size\": \"\",\n  \"itemCategory\": \"\",\n  \"mainCategory\": \"\",\n  \"intermediateCategory\": \"\",\n  \"favorite\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get one point-of-sale product",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/products/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "products",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "23446",
+                  "description": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update a point-of-sale product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pos/products/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pos",
+                "products",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"\",\n  \"dealer\": \"\",\n  \"articleno\": \"\",\n  \"tradeItemNumber\": \"\",\n  \"brand\": \"\",\n  \"name\": \"\",\n  \"inStock\": \"\",\n  \"retailPrice\": \"\",\n  \"retailCurrency\": \"\",\n  \"tax\": \"\",\n  \"costPrice\": \"\",\n  \"category\": \"\",\n  \"images\": \"\",\n  \"uploadedFiles\": \"\",\n  \"color\": \"\",\n  \"size\": \"\",\n  \"itemCategory\": \"\",\n  \"mainCategory\": \"\",\n  \"intermediateCategory\": \"\",\n  \"favorite\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

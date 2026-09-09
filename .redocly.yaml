@@ -1,0 +1,6 @@
+extends:
+  - minimal
+rules:
+  operation-operationId: error
+  operation-summary: error
+  no-unresolved-refs: error

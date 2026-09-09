@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: Mini
+  version: "1"
+servers:
+  - url: https://dealer.flyfisheurope.com
+tags:
+  - name: brands
+paths:
+  /api/brands/:
+    get:
+      tags: [brands]
+      operationId: listBrands
+      summary: List brands
+      x-sdk-node: "ffe.brands()"
+      x-sdk-php: "$ffe->brands()"
+      responses:
+        "200":
+          description: Array of brands
+          content:
+            application/json:
+              example:
+                - brandno: simms
+                  name: Simms
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/brands/{brandno}:
+    get:
+      tags: [brands]
+      operationId: getBrand
+      summary: Get one brand
+      x-sdk-node: "ffe.brand('simms')"
+      x-sdk-php: "$ffe->brand('simms')"
+      parameters:
+        - name: brandno
+          in: path
+          required: true
+          schema: { type: string }
+          example: simms
+          description: Brand id
+      responses:
+        "200":
+          description: The brand
+          content:
+            application/json:
+              examples:
+                found:
+                  summary: Brand found
+                  value:
+                    brandno: simms
+                    name: Simms
+                unknownBrandno:
+                  summary: Unknown brandno returns an empty object
+                  value: {}
+  /api/brands/nosdk:
+    get:
+      tags: [brands]
+      operationId: noSdkExample
+      summary: No SDK method
+      responses:
+        "200":
+          description: ok
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          example:
+            status: 401
+            message: Authentication Required

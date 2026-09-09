@@ -49,9 +49,18 @@ further notice. Status code of throttling is:
 
 # API endpoints
 
-- [/api/brands/](brands.md)
-- [/api/categories/](categories.md)
-- [/api/products/](products.md)
+Full reference, generated from [openapi.yaml](openapi.yaml):
+
+- [/login/](docs/reference/login.md)
+- [/api/brands/](docs/reference/brands.md)
+- [/api/categories/](docs/reference/categories.md)
+- [/api/products/](docs/reference/products.md)
+- [/api/baskets/](docs/reference/baskets.md)
+- [/api/dealers/info](docs/reference/dealers.md)
+- [/api/pos/sales/](docs/reference/pos-sales.md)
+- [/api/pos/products/](docs/reference/pos-products.md)
+
+Prefer Postman? Import [postman/ffe-api.postman_collection.json](postman/ffe-api.postman_collection.json) and set the `token` variable.
 
 You can create an API token on the DealerWeb under My Account.
 

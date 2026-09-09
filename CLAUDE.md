@@ -8,13 +8,13 @@ Public documentation and client SDKs for the Flyfish Europe Dealer JSON REST API
 
 Three things live here:
 
-- **Endpoint docs** at the repo root: `README.md` (auth, status codes, index) plus one file per resource (`brands.md`, `categories.md`, `products.md`, `baskets.md`).
+- **Endpoint docs**: `README.md` (auth, status codes, index), `openapi.yaml` (source of truth) and the generated per-resource pages in `docs/reference/`. The root `brands.md`, `categories.md`, `products.md`, `baskets.md` are redirect stubs kept for old links.
 - **SDKs** in `sdk/`: `sdk/node.js/ffe.js` (published to npm as `@flyfisheurope/ffe-api-sdk`) and `sdk/php/ffe.php` (composer name `ffe/api`).
 - **Examples** in `example/`: browser JavaScript, Node.js and PHP.
 
 ## Commands
 
-There is no build, lint or test suite. `npm test` in `sdk/node.js` is a placeholder that exits 1.
+Root tooling (spec lint, generators, generator tests) lives in the root `package.json`; see the spec tooling block below. `npm test` in `sdk/node.js` is still a placeholder that exits 1 (SDK tests are added in Phase 2).
 
 ```bash
 # Sanity-check the Node SDK loads
@@ -44,6 +44,16 @@ cd sdk/node.js && ./npm-release.sh
 
 `npm-release.sh` needs `jq` (`brew install jq`) and reads a GitHub token from a `token = ...` line in `~/.gitconfig`. It creates a GitHub release tagged with the package version against the remote `master` branch, then runs `npm publish`. It does not bump the version or commit anything itself.
 
+```bash
+# Spec tooling (repo root)
+npm install
+npm run lint:spec       # validate openapi.yaml
+npm run gen:reference   # regenerate docs/reference/*.md (never edit those by hand)
+npm run gen:postman     # regenerate postman/ffe-api.postman_collection.json
+npm test                # generator unit tests
+FFE_TOKEN=... node scripts/probe.js GET /api/brands/ brands-list   # record a live call to scripts/probes/ (gitignored)
+```
+
 ## Architecture
 
 ### Authentication model
@@ -52,7 +62,7 @@ Every request sends `Authorization: Bearer <jwt>`. Dealers create tokens in Deal
 
 ### The two SDKs mirror each other
 
-Both SDKs are a single dependency-free class named `FFE` with the same constructor and the same core method names: `login`, `brand`/`brands`, `category`/`categories`, `product`/`products`. The Node SDK additionally has `dealerInfo` (`/api/dealers/info`) and POS methods (`posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts` on `/api/pos/...`); in the PHP SDK the POS methods exist but throw `Not implemented`. When adding an endpoint, add it to both SDKs (or an explicit not-implemented stub in PHP), add a doc file at the root, and link it from `README.md`.
+Both SDKs are a single dependency-free class named `FFE` with the same constructor and the same core method names: `login`, `brand`/`brands`, `category`/`categories`, `product`/`products`. The Node SDK additionally has `dealerInfo` (`/api/dealers/info`) and POS methods (`posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts` on `/api/pos/...`); in the PHP SDK the POS methods exist but throw `Not implemented`. When adding an endpoint, add it to both SDKs (or an explicit not-implemented stub in PHP), add the operation to `openapi.yaml` with `x-sdk-node`/`x-sdk-php` strings, run `npm run gen:reference` and `npm run gen:postman`, and link the generated page from `README.md`.
 
 Constructor: `new FFE(jwtToken, options)` where `options` may set `hostname`, `port`, `https` (PHP also `debug`). This is how you point the SDK at a local API server (the docs' curl samples use `http://localhost:8000`).
 
@@ -66,14 +76,26 @@ Behavioural differences to keep in mind when touching either side:
 
 ### Browser client
 
-`example/javascript/ffe-api-sdk.js` is an IIFE that uses `fetch` and is configured through globals set before the script tag: `FFE_TOKEN` (required), `FFE_URL` (default `https://dealer.flyfisheurope.com/api`), `FFE_IMAGE_DOMAIN`. It is demo code tightly coupled to the element ids in `html-client.html` (`#productList`, `#categoryList`, `#product...`, `#productPagination`), not a reusable SDK. It also contains the reference implementation of the `availability` field mapping (yes / no / ISO date / "10+" / number) described in `products.md`.
+`example/javascript/ffe-api-sdk.js` is an IIFE that uses `fetch` and is configured through globals set before the script tag: `FFE_TOKEN` (required), `FFE_URL` (default `https://dealer.flyfisheurope.com/api`), `FFE_IMAGE_DOMAIN`. It is demo code tightly coupled to the element ids in `html-client.html` (`#productList`, `#categoryList`, `#product...`, `#productPagination`), not a reusable SDK. It also contains an availability mapping (yes / no / date / "10+" / number), but its date branch expects ISO `YYYY-MM-DD` while the live API returns `D.M.YY`, so that branch never matches; the verified field semantics are in `docs/reference/products.md`.
 
 ### Endpoint doc template
 
-Each resource file follows the same layout: URL table (OPTIONS for CORS, GET list, GET by id), URL params, query string params, success response JSON, 401 error response, then curl and Node `https` sample calls. Follow this layout for new resources. `products.md` has the richest query-param table (brand/maingroup/intgroup/subgroup names, `mainCat`/`intCat`/`subCat` numbers, `gtin`, `articleNoIn`, `search`, `unique`, `isNew`).
+The per-resource pages are now generated into `docs/reference/` by `scripts/gen-reference.js`: URL table, parameter table, request body, responses with examples, then curl/Node/PHP sample calls. The template lives in that script, not in Markdown — do not hand-edit the generated pages.
+
+### OpenAPI spec is the source of truth
+
+`openapi.yaml` is the single source of truth for endpoints. `docs/reference/` and `postman/` are generated from it by the scripts in `scripts/`; edit the spec and regenerate. Operations carry `x-sdk-node` and `x-sdk-php` strings used as the SDK sample call in the generated pages, and `x-verified: false` marks operations not confirmed against the live API.
 
 ### Known inconsistencies
 
 - `README.md` and `example/javascript/README.md` link to `./sdk/javascript/` and a rawgit URL under `sdk/javascript/`; that directory does not exist. The browser client lives in `example/javascript/`.
 - `sdk/node.js/README.md` and `demo.js` still reference the unscoped package name `ffe-api-sdk`; `package.json` publishes as `@flyfisheurope/ffe-api-sdk`.
-- `baskets.md` documents `/api/baskets/` but no SDK wraps it, and its sample calls were copied from `brands.md`. Conversely `/api/dealers/info` and `/api/pos/*` are in the Node SDK but have no doc file.
+
+### Verified API behaviour (2026-09)
+
+- Unknown ids on every by-id endpoint return HTTP 200 with `{}` (never 404).
+- Products default page size is 25 with no cap observed up to 3000.
+- `unique=true` on `/api/products/` returned HTTP 504 in every attempt, so its output shape is unverified.
+- `availability` dates are `D.M.YY`/`DD.MM.YY`, not ISO.
+- `/login/` and the POS write operations are marked `x-verified: false` in the spec.
+- The test dealer account only sees Simms categories, so brand-filter behaviour on categories is unverified.

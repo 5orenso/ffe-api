@@ -8,3 +8,6 @@ example/node.js/simple.js
 sdk/node.js/npm-debug.log
 
 demo/*
+node_modules/
+scripts/probes/
+package-lock.json
