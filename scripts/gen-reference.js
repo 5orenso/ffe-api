@@ -86,11 +86,25 @@ function requestBody(op, spec) {
     return lines.join('\n') + '\n';
 }
 
+function shellSingleQuote(str) {
+    return `'${str.replace(/'/g, "'\\''")}'`;
+}
+
 function sampleCalls(op, method, urlPath, spec) {
     const url = baseUrl(spec) + examplePath(op, urlPath);
-    const curl = method === 'get'
-        ? `curl -H 'Authorization: Bearer <your token>' '${url}'`
-        : `curl -X ${method.toUpperCase()} -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '{}' '${url}'`;
+    const includeAuth = !(Array.isArray(op.security) && op.security.length === 0);
+    const authFlag = includeAuth ? `-H 'Authorization: Bearer <your token>' ` : '';
+    let curl;
+    if (method === 'get') {
+        curl = `curl ${authFlag}'${url}'`;
+    } else {
+        const body = resolveRef(spec, op.requestBody);
+        const json = body && body.content && body.content['application/json'];
+        const bodyArg = json && json.example !== undefined
+            ? shellSingleQuote(JSON.stringify(json.example))
+            : "'<json body>'";
+        curl = `curl -X ${method.toUpperCase()} ${authFlag}-H 'Content-Type: application/json' -d ${bodyArg} '${url}'`;
+    }
     const node = op['x-sdk-node'];
     const php = op['x-sdk-php'];
 
@@ -155,7 +169,7 @@ function render(spec) {
             lines.push(`| \`${urlPath}\` | ${method.toUpperCase()} | ${op.summary} |`);
         }
         lines.push('');
-        lines.push('All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).', '');
+        lines.push('All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).', '');
         for (const { method, urlPath, op } of ops) {
             lines.push(operationSection(method, urlPath, op, spec));
         }

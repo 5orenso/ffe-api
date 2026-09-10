@@ -6,7 +6,7 @@
 |-----|--------|-------------|
 | `/api/baskets/` | GET | Get your current basket |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/baskets/
 
@@ -22,9 +22,8 @@ the test account. Because the basket had no lines, the shape of
 a populated line could not be verified live - see the
 `BasketLine` schema's own description.
 
-Neither the Node nor the PHP SDK currently wraps this endpoint
-(verified: no `basket`-named method exists in either SDK
-source file); call it directly with an HTTP client.
+Both SDKs wrap this endpoint: Node ffe.baskets(opt) and PHP
+$ffe->baskets($opt).
 
 Write operations (adding lines, placing orders) are not
 documented here yet; the OPTIONS response advertises methods

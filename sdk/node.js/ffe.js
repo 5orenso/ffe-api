@@ -17,7 +17,7 @@ class FFE {
             if (options.port) {
                 this.port = options.port;
             }
-            if (!options.https) {
+            if (options.https === false) {
                 this.https = http;
             }
         }
@@ -30,7 +30,7 @@ class FFE {
             for (let i = 0, l = keys.length; i < l; i += 1) {
                 const key = keys[i];
                 const val = opt[key];
-                if (key && val) {
+                if (key && val !== undefined && val !== null && val !== '') {
                     queryString.push(`${key}=${encodeURIComponent(val)}`);
                 }
             }
@@ -42,7 +42,12 @@ class FFE {
     }
 
     login(email, pass) {
-        return this.getEndpoint(`/login/`, 'POST', { email, pass });
+        return this.getEndpoint('/login/', 'POST', { email, pass }).then((data) => {
+            if (data && data.status === 200 && data.apiToken) {
+                this.jwtToken = data.apiToken;
+            }
+            return data;
+        });
     }
 
     brand(brandno) {
@@ -55,6 +60,10 @@ class FFE {
     
     dealerInfo() {
         return this.getEndpoint('/api/dealers/info');
+    }
+
+    baskets(opt) {
+        return this.getEndpoint(`/api/baskets/${this.makeQueryString(opt)}`);
     }
 
     category(categoryno) {
@@ -118,7 +127,7 @@ class FFE {
             if (typeof body === 'object') {
                 postData = JSON.stringify(body);
                 options.headers['Content-Type'] = 'application/json';
-                options.headers['Content-Length'] = postData.length;
+                options.headers['Content-Length'] = Buffer.byteLength(postData);
             }
             const req = this.https.request(options, (res) => {
                 const body = [];

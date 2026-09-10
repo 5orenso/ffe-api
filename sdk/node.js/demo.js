@@ -1,4 +1,4 @@
-const FFE = require('ffe-api-sdk');
+const FFE = require('@flyfisheurope/ffe-api-sdk');
 const ffe = new FFE('<your ffe token>');
 
 ffe.products({ limit: 20, brand: 'simms' })

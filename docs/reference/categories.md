@@ -7,7 +7,7 @@
 | `/api/categories/` | GET | List categories |
 | `/api/categories/{categoryno}` | GET | Get one category |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/categories/
 

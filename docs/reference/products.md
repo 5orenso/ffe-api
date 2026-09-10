@@ -7,7 +7,7 @@
 | `/api/products/` | GET | List or search products |
 | `/api/products/{articleno}` | GET | Get one product variant by articleno |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/products/
 

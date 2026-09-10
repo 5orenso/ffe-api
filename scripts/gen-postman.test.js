@@ -17,14 +17,15 @@ test('collection has v2.1 schema, token and baseUrl variables', () => {
 
 test('one folder per tag with one request per operation', () => {
     const c = render(spec);
-    assert.equal(c.item.length, 1);
-    assert.equal(c.item[0].name, 'brands');
-    assert.deepEqual(c.item[0].item.map(r => r.name), ['List brands', 'Get one brand', 'No SDK method']);
+    assert.deepEqual(c.item.map(f => f.name).sort(), ['brands', 'login', 'pos-sales']);
+    const brands = c.item.find(f => f.name === 'brands');
+    assert.deepEqual(brands.item.map(r => r.name), ['List brands', 'Get one brand', 'No SDK method']);
 });
 
 test('requests carry bearer header and path variables', () => {
     const c = render(spec);
-    const req = c.item[0].item[1].request;
+    const brands = c.item.find(f => f.name === 'brands');
+    const req = brands.item[1].request;
     assert.equal(req.method, 'GET');
     assert.deepEqual(req.header, [{ key: 'Authorization', value: 'Bearer {{token}}' }]);
     assert.equal(req.url.raw, '{{baseUrl}}/api/brands/:brandno');

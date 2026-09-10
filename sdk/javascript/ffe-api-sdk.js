@@ -5,12 +5,8 @@ var FFE = (function () {
     if (typeof FFE_URL === 'undefined') {
         FFE_URL = 'https://dealer.flyfisheurope.com/api';
     }
-    if (typeof FFE_IMAGE_DOMAIN === 'undefined') {
-        FFE_IMAGE_DOMAIN = 'https://dealer.flyfisheurope.com';
-    }
     const TOKEN = FFE_TOKEN;
     const URL = FFE_URL;
-    const IMAGE_DOMAIN = FFE_IMAGE_DOMAIN;
     const LIMIT = 20;
 
     function fetchApi(url) {
@@ -30,22 +26,6 @@ var FFE = (function () {
 
     function ucFirst(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-
-    function pad(num) {
-        let r = String(num);
-        if (r.length === 1) {
-            r = `0${r}`;
-        }
-        return r;
-    }
-
-    function ffeDate(date) {
-        let day = pad(date.getDate());
-        let month = pad(date.getMonth() + 1);
-        let year = String(date.getFullYear());
-        year = year.slice(2);
-        return `${day}.${month}.${year}`;
     }
 
     function getProduct(articleno) {
@@ -73,7 +53,7 @@ var FFE = (function () {
             });
     }
 
-    function getProductList($brand, $maingroup, $limit = LIMIT, $offset = 0, $unique = true) {
+    function getProductList($brand, $maingroup, $limit = LIMIT, $offset = 0, $unique = false) {
         let brand;
         let maingroup;
         let limit;
@@ -89,7 +69,15 @@ var FFE = (function () {
             limit = $limit;
             offset = $offset;
         }
-        fetchApi(`${URL}/products/?brand=${brand}&mainCat=${maingroup}&limit=${limit}&offset=${offset}&unique=${$unique}`)
+        let url = `${URL}/products/?brand=${encodeURIComponent(brand)}`;
+        if (maingroup !== undefined && maingroup !== null) {
+            url += `&mainCat=${encodeURIComponent(maingroup)}`;
+        }
+        url += `&limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
+        if ($unique === true) {
+            url += '&unique=true';
+        }
+        fetchApi(url)
             .then((data) => {
                 if (Array.isArray(data)) {
                     const product = document.querySelector('#product');
@@ -107,9 +95,9 @@ var FFE = (function () {
                             } else if (prod.availability.match(/No/)) {
                                 availabilityText = 'NO';
                                 availabilityClass = 'no';
-                            } else if (prod.availability.match(/\d{4}-\d{2}-\d{2}/)) {
-                                const date = new Date(prod.availability);
-                                availabilityText = ffeDate(date);
+                            } else if (prod.availability.match(/^\d{1,2}\.\d{1,2}\.\d{2}$/)) {
+                                // Expected date, already formatted D.M.YY by the API.
+                                availabilityText = prod.availability;
                                 availabilityClass = 'soon';
                             } else {
                                 availabilityText = String(prod.availability);

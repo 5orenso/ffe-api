@@ -6,7 +6,7 @@
 |-----|--------|-------------|
 | `/login/` | POST | Exchange email and password for an API token |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## POST /login/
 
@@ -30,6 +30,13 @@ Content types: `application/json`, `application/x-www-form-urlencoded`
 |-------|------|----------|
 | email | string | yes |
 | pass | string | yes |
+
+```json
+{
+  "email": "you@example.com",
+  "pass": "your-password"
+}
+```
 
 
 ### Responses
@@ -58,7 +65,7 @@ Content types: `application/json`, `application/x-www-form-urlencoded`
 **curl**
 
 ```bash
-curl -X POST -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '{}' 'https://dealer.flyfisheurope.com/login/'
+curl -X POST -H 'Content-Type: application/json' -d '{"email":"you@example.com","pass":"your-password"}' 'https://dealer.flyfisheurope.com/login/'
 ```
 
 **Node.js SDK**

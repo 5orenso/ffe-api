@@ -6,7 +6,7 @@
 |-----|--------|-------------|
 | `/api/dealers/info` | GET | Information about the dealer account the token belongs to |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/dealers/info
 

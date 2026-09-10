@@ -38,9 +38,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/LoginRequest"
+            example:
+              email: you@example.com
+              pass: your-password
           application/x-www-form-urlencoded:
             schema:
               $ref: "#/components/schemas/LoginRequest"
+            example:
+              email: you@example.com
+              pass: your-password
       responses:
         "200":
           description: Login succeeded
@@ -840,9 +846,8 @@ paths:
         a populated line could not be verified live - see the
         `BasketLine` schema's own description.
 
-        Neither the Node nor the PHP SDK currently wraps this endpoint
-        (verified: no `basket`-named method exists in either SDK
-        source file); call it directly with an HTTP client.
+        Both SDKs wrap this endpoint: Node ffe.baskets(opt) and PHP
+        $ffe->baskets($opt).
 
         Write operations (adding lines, placing orders) are not
         documented here yet; the OPTIONS response advertises methods
@@ -1397,7 +1402,8 @@ paths:
         - name: id
           in: path
           required: true
-          schema: { type: string }
+          schema: { type: integer }
+          example: 23446
       requestBody:
         required: true
         content:
@@ -2774,8 +2780,9 @@ components:
           type: object
           nullable: true
           description: |
-            Absent on 1 of the 17 probed records. Unlike this API's shared
-            Images schema, only small/medium/large were observed here - no
+            Absent on 1 and null on 2 of the 17 probed records (3
+            non-object cases in total). Unlike this API's shared Images
+            schema, only small/medium/large were observed here - no
             xlarge, xxlarge or list.
           properties:
             small: { type: string }

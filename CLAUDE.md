@@ -14,7 +14,7 @@ Three things live here:
 
 ## Commands
 
-Root tooling (spec lint, generators, generator tests) lives in the root `package.json`; see the spec tooling block below. `npm test` in `sdk/node.js` is still a placeholder that exits 1 (SDK tests are added in Phase 2).
+Root tooling (spec lint, generators, generator tests) lives in the root `package.json`; see the spec tooling block below. Node SDK tests: `cd sdk/node.js && npm test` (stub HTTP server, no token needed).
 
 ```bash
 # Sanity-check the Node SDK loads
@@ -24,15 +24,16 @@ node -e "require('./sdk/node.js/ffe.js')"
 php -l sdk/php/ffe.php
 php -l example/php/ffe.php
 
-# Run the PHP example (edit $token/$email/$password in the file first)
-cd example/php && php ffe.php
+# Run the examples (token from the environment)
+FFE_TOKEN=<token> node example/node.js/simple-dist.js
+FFE_TOKEN=<token> php example/php/ffe.php
 
 # Run the browser example (from example/javascript/README.md)
-cd example/javascript && python -m SimpleHTTPServer 9999   # or: python3 -m http.server 9999
-open http://localhost:9999/html-client.html
+python3 -m http.server 9999   # from the repo root
+open http://localhost:9999/example/javascript/html-client.html
 ```
 
-The Node example `example/node.js/simple-dist.js` does `require('./ffe')`, which is not checked in. Copy `sdk/node.js/ffe.js` into `example/node.js/` (or point the require at `../../sdk/node.js/ffe.js`) before running it. `example/node.js/simple.js` is gitignored for a local copy that holds a real token.
+Examples read the token from `FFE_TOKEN` and require the SDK by relative path, so they run as-is.
 
 ### Releasing the Node SDK
 
@@ -62,21 +63,20 @@ Every request sends `Authorization: Bearer <jwt>`. Dealers create tokens in Deal
 
 ### The two SDKs mirror each other
 
-Both SDKs are a single dependency-free class named `FFE` with the same constructor and the same core method names: `login`, `brand`/`brands`, `category`/`categories`, `product`/`products`. The Node SDK additionally has `dealerInfo` (`/api/dealers/info`) and POS methods (`posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts` on `/api/pos/...`); in the PHP SDK the POS methods exist but throw `Not implemented`. When adding an endpoint, add it to both SDKs (or an explicit not-implemented stub in PHP), add the operation to `openapi.yaml` with `x-sdk-node`/`x-sdk-php` strings, run `npm run gen:reference` and `npm run gen:postman`, and link the generated page from `README.md`.
+Both SDKs are a single dependency-free class named `FFE` with the same constructor and the same core method names: `login`, `brand`/`brands`, `category`/`categories`, `product`/`products`, `baskets`, `dealerInfo`, and the POS methods (`posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts`), which are implemented in Node and are throwing `Not implemented` stubs in PHP. When adding an endpoint, add it to both SDKs (or an explicit not-implemented stub in PHP), add the operation to `openapi.yaml` with `x-sdk-node`/`x-sdk-php` strings, run `npm run gen:reference` and `npm run gen:postman`, and link the generated page from `README.md`.
 
 Constructor: `new FFE(jwtToken, options)` where `options` may set `hostname`, `port`, `https` (PHP also `debug`). This is how you point the SDK at a local API server (the docs' curl samples use `http://localhost:8000`).
 
 Behavioural differences to keep in mind when touching either side:
 
-- **Login token swap**: PHP `login()` replaces the instance token with the returned `apiToken`. Node `login()` only returns the response; the caller must construct a new client with `apiToken`.
-- **Node `https` option**: if any `options` object is passed and `options.https` is falsy, the client silently switches to plain `http`. PHP only changes protocol when `https` is explicitly set.
+- **Protocol**: both SDKs use https unless `https` is explicitly set to `false` (Node) or `0` (PHP).
 - **Error handling**: Node resolves with whatever JSON the server returned for any HTTP status and only rejects on network errors; a non-JSON body resolves to `{ code: 500, error: 'Invalid JSON from server', ... }`. PHP throws an `Exception` on any non-200 response or curl failure and returns associative arrays.
 - **POST encoding**: Node sends `application/json`; PHP sends `application/x-www-form-urlencoded` via `http_build_query`.
-- **Query strings**: Node's `makeQueryString` drops keys with falsy values (so `{ isNew: 0 }` is omitted); PHP includes every key.
+- **Query strings**: Node omits undefined/null/'' values; PHP includes every key.
 
 ### Browser client
 
-`example/javascript/ffe-api-sdk.js` is an IIFE that uses `fetch` and is configured through globals set before the script tag: `FFE_TOKEN` (required), `FFE_URL` (default `https://dealer.flyfisheurope.com/api`), `FFE_IMAGE_DOMAIN`. It is demo code tightly coupled to the element ids in `html-client.html` (`#productList`, `#categoryList`, `#product...`, `#productPagination`), not a reusable SDK. It also contains an availability mapping (yes / no / date / "10+" / number), but its date branch expects ISO `YYYY-MM-DD` while the live API returns `D.M.YY`, so that branch never matches; the verified field semantics are in `docs/reference/products.md`.
+`sdk/javascript/ffe-api-sdk.js` is an IIFE that uses `fetch` and is configured through globals set before the script tag: `FFE_TOKEN` (required), `FFE_URL` (default `https://dealer.flyfisheurope.com/api`). The demo page `example/javascript/html-client.html` loads it by relative path and is tightly coupled to its element ids (`#productList`, `#categoryList`, `#product...`, `#productPagination`), not a reusable SDK. Its availability mapping (yes / no / `D.M.YY` date / "10+" / number) matches the live API; the verified field semantics are in the `Product` schema in `openapi.yaml`.
 
 ### Endpoint doc template
 
@@ -86,10 +86,9 @@ The per-resource pages are now generated into `docs/reference/` by `scripts/gen-
 
 `openapi.yaml` is the single source of truth for endpoints. `docs/reference/` and `postman/` are generated from it by the scripts in `scripts/`; edit the spec and regenerate. Operations carry `x-sdk-node` and `x-sdk-php` strings used as the SDK sample call in the generated pages, and `x-verified: false` marks operations not confirmed against the live API.
 
-### Known inconsistencies
+### Node SDK tests
 
-- `README.md` and `example/javascript/README.md` link to `./sdk/javascript/` and a rawgit URL under `sdk/javascript/`; that directory does not exist. The browser client lives in `example/javascript/`.
-- `sdk/node.js/README.md` and `demo.js` still reference the unscoped package name `ffe-api-sdk`; `package.json` publishes as `@flyfisheurope/ffe-api-sdk`.
+`sdk/node.js/test/ffe.test.js` spins up a local `http` stub server (`server.unref()` + `closeAllConnections()` so `node --test` exits) and asserts the exact request path, headers and body the SDK sends, plus the resolved value. Add a test there for every SDK behaviour change.
 
 ### Verified API behaviour (2026-09)
 

@@ -10,7 +10,7 @@ const spec = yaml.load(fs.readFileSync(path.join(__dirname, 'fixtures', 'mini-sp
 
 test('one file per tag with generated header', () => {
     const out = render(spec);
-    assert.deepEqual(Object.keys(out), ['brands.md']);
+    assert.deepEqual(Object.keys(out).sort(), ['brands.md', 'login.md', 'pos-sales.md']);
     assert.ok(out['brands.md'].startsWith('<!-- Generated from openapi.yaml by scripts/gen-reference.js. Do not edit. -->'));
 });
 
@@ -51,4 +51,16 @@ test('sample calls degrade to a comment when SDK strings are absent', () => {
     const md = render(spec)['brands.md'];
     assert.match(md, /\/\/ No PHP SDK method for this endpoint/);
     assert.doesNotMatch(md, /\$result = \/\//);
+});
+
+test('login curl sample renders the request body and omits the auth header', () => {
+    const md = render(spec)['login.md'];
+    const curlBlock = md.match(/\*\*curl\*\*\n\n```bash\n([\s\S]*?)\n```/)[1];
+    assert.match(curlBlock, /-d '\{"email":"you@example\.com","pass":"secret"\}'/);
+    assert.doesNotMatch(curlBlock, /Authorization/);
+});
+
+test('non-GET curl sample falls back to a placeholder body when no example exists', () => {
+    const md = render(spec)['pos-sales.md'];
+    assert.match(md, /-d '<json body>'/);
 });

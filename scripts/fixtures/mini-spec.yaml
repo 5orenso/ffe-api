@@ -6,7 +6,39 @@ servers:
   - url: https://dealer.flyfisheurope.com
 tags:
   - name: brands
+  - name: login
+  - name: pos-sales
 paths:
+  /login/:
+    post:
+      tags: [login]
+      operationId: login
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              email: you@example.com
+              pass: secret
+      responses:
+        "200":
+          description: ok
+  /api/pos/sales/:
+    post:
+      tags: [pos-sales]
+      operationId: addSale
+      summary: Add sale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: created
   /api/brands/:
     get:
       tags: [brands]

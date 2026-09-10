@@ -7,7 +7,7 @@
 | `/api/brands/` | GET | List all brands available to your dealer account |
 | `/api/brands/{brandno}` | GET | Get one brand |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/brands/
 

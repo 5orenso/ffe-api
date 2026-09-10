@@ -1,17 +1,19 @@
 <?php
-include( './../../sdk/php/ffe.php');
+// Run with:  FFE_TOKEN=<your token> php ffe.php
+// Optional:  FFE_EMAIL and FFE_PASS to demonstrate login() instead of a pre-made token.
+include(__DIR__ . '/../../sdk/php/ffe.php');
 
-/*
- * Create token on: https://dealer.flyfisheurope.com/myaccount
- */
-$token = 'YOUR_TOKEN';
+$token = getenv('FFE_TOKEN');
 $options = new stdClass();
 $options->debug = 0;
-$ffe = new FFE($token, $options);
-$email = 'email@example.com';
-$password = 'my_password';
+$ffe = new FFE($token ?: '', $options);
 try {
-    $ffe->login($email, $password);
+    if (getenv('FFE_EMAIL') && getenv('FFE_PASS')) {
+        $ffe->login(getenv('FFE_EMAIL'), getenv('FFE_PASS'));
+    } elseif (!$token) {
+        fwrite(STDERR, "Set FFE_TOKEN (or FFE_EMAIL and FFE_PASS) first.\n");
+        exit(1);
+    }
     $allbrands = $ffe->brands();
     echo "Getting all brands: \n\n";
     foreach ($allbrands as $brand) {

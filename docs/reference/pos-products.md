@@ -9,7 +9,7 @@
 | `/api/pos/products/{id}` | GET | Get one point-of-sale product |
 | `/api/pos/products/{id}` | PUT | Update a point-of-sale product |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/pos/products/
 
@@ -130,7 +130,7 @@ Content types: `application/json`
 **curl**
 
 ```bash
-curl -X POST -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '{}' 'https://dealer.flyfisheurope.com/api/pos/products/'
+curl -X POST -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '<json body>' 'https://dealer.flyfisheurope.com/api/pos/products/'
 ```
 
 **Node.js SDK**
@@ -258,7 +258,7 @@ SDK method; confirm with Flyfish Europe before integrating.
 
 | Name | In | Type | Required | Example | Description |
 |------|----|------|----------|---------|-------------|
-| id | path | string | yes |  |  |
+| id | path | integer | yes | 23446 |  |
 
 ### Request body
 
@@ -307,7 +307,7 @@ Content types: `application/json`
 **curl**
 
 ```bash
-curl -X PUT -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '{}' 'https://dealer.flyfisheurope.com/api/pos/products/<id>'
+curl -X PUT -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '<json body>' 'https://dealer.flyfisheurope.com/api/pos/products/23446'
 ```
 
 **Node.js SDK**
@@ -323,5 +323,5 @@ ffe.posEditProduct({ ... }, { id: 123 })
 **PHP SDK**
 
 ```php
-// No PHP SDK method for this endpoint; use curl against https://dealer.flyfisheurope.com/api/pos/products/<id>.
+// No PHP SDK method for this endpoint; use curl against https://dealer.flyfisheurope.com/api/pos/products/23446.
 ```

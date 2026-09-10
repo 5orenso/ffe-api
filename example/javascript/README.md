@@ -1,30 +1,20 @@
 # FFE API Examples - Clientside Javascript
 
-Flyfish Europe REST API client side examples.
+Flyfish Europe REST API client side example.
 
 ## Files
 
-- [Example HTML file](html-client.html)
+- [html-client.html](html-client.html) — a page that lists brands, categories and products using [sdk/javascript/ffe-api-sdk.js](../../sdk/javascript/ffe-api-sdk.js).
 
-```html
-<script type="text/javascript">
-    FFE_TOKEN = '<your clientside jwtToken for the dealerweb>';
-</script>
-<script type="text/javascript" src="https://rawgit.com/5orenso/ffe-api/master/sdk/javascript/ffe-api-sdk.js"></script>
+## How to test
+
+Serve the repository root over HTTP so the relative script path resolves, then open the page:
+
+```bash
+# From the repository root:
+python3 -m http.server 9999
+# Then open:
+open http://localhost:9999/example/javascript/html-client.html
 ```
 
-
-## Howto test Client side javascript
-
-Mac OS X:
-```
-# Go to the directory with your html test file:
-$ cd <to the directory with the html file>
-
-# Start a simple http server built in on your Mac:
-$ python -m SimpleHTTPServer 9999
-
-# Start a browser and load the file from the server:
-$ open http://localhost:9999/html-client.html
-# A browser should now open and display the html page.
-```
+Edit `FFE_TOKEN` in `html-client.html` first and use a client-side token.

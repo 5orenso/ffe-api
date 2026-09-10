@@ -67,12 +67,13 @@ You can create an API token on the DealerWeb under My Account.
 
 # SDKs
 
-- [Client side Javascript](./sdk/javascript/)
-- [Server side Javascript (Node.js)](./sdk/node.js/)
+- [Server side JavaScript (Node.js)](./sdk/node.js/)
     ```bash
-    $ npm install ffe-api-sdk --save
-    ```   
-    Test it online at RunKit: https://npm.runkit.com/ffe-api-sdk   
+    $ npm install @flyfisheurope/ffe-api-sdk --save
+    ```
+    Test it online at RunKit: https://npm.runkit.com/@flyfisheurope/ffe-api-sdk
+- [PHP](./sdk/php/)
+- [Client side JavaScript](./sdk/javascript/)
 
 
 # Code examples

@@ -8,7 +8,7 @@
 | `/api/pos/sales/` | POST | Report a sale from your point of sale |
 | `/api/pos/sales/{id}` | GET | Get one reported sale |
 
-All requests need the header `Authorization: Bearer <your token>`. See [Getting started](../getting-started.md).
+All requests need the header `Authorization: Bearer <your token>`. See [Authentication](../../README.md#authentication).
 
 ## GET /api/pos/sales/
 
@@ -129,7 +129,7 @@ Content types: `application/json`
 **curl**
 
 ```bash
-curl -X POST -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '{}' 'https://dealer.flyfisheurope.com/api/pos/sales/'
+curl -X POST -H 'Authorization: Bearer <your token>' -H 'Content-Type: application/json' -d '<json body>' 'https://dealer.flyfisheurope.com/api/pos/sales/'
 ```
 
 **Node.js SDK**

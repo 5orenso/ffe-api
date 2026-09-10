@@ -9,6 +9,7 @@ class FFE {
     private $port;
     private $jwtToken;
     private $https;
+    private $debug;
     private $curlInfo;
 
     /**
@@ -27,10 +28,10 @@ class FFE {
         $this->debug = 0;
         $this->curlInfo = [];
         if (gettype($options) === 'object') {
-            if ($options->hostname) {
+            if (!empty($options->hostname)) {
                 $this->hostname = $options->hostname;
             }
-            if ($options->port) {
+            if (!empty($options->port)) {
                 $this->port = $options->port;
             }
             if (isset($options->https)) {
@@ -45,15 +46,16 @@ class FFE {
     /**
      * @param string $email Your login $email for dealer.flyfisheurope.com
      * @param string $pass Password for your account
-     * @return object {status: 200, apiToken: 'tokenForApi', message: 'OK'}
-     *  or {status: 401, message: 'Login failed'}
+     * @return array {status: 200, apiToken: 'tokenForApi', message: 'OK'}
+     *  On failure curlExec() throws Exception('Not authorized') instead of
+     *  returning an array, so a 401 never reaches this method's return value.
      */
     public function login($email, $pass) {
         $opt = new StdClass();
         $opt->email = $email;
         $opt->pass = $pass;
         $data = $this->post('/login/', $opt);
-        if ($data['status'] === 200) {
+        if ($data['status'] === 200 && isset($data['apiToken'])) {
             $this->jwtToken = $data['apiToken'];
         }
         return $data;
@@ -122,6 +124,24 @@ class FFE {
     }
 
     /**
+     * Get your current basket
+     * @param object $opt
+     *  $opt->presale int Optional, 1 enables pre-season mode
+     * @return array See docs/reference/baskets.md
+     */
+    public function baskets($opt = null) {
+        return $this->get('/api/baskets/' . $this->makeQueryString($opt));
+    }
+
+    /**
+     * Information about the dealer account the token belongs to
+     * @return array See docs/reference/dealers.md
+     */
+    public function dealerInfo() {
+        return $this->get('/api/dealers/info');
+    }
+
+    /**
      * @throws Exception Not implemented
      */
     public function posAddSale($opt) {
@@ -146,6 +166,13 @@ class FFE {
      * @throws Exception Not implemented
      */
     public function posProducts($opt) {
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * @throws Exception Not implemented
+     */
+    public function posEditProduct($opt, $params = null) {
         throw new Exception('Not implemented');
     }
 
@@ -228,7 +255,7 @@ class FFE {
     }
 
     private function makeQueryString($opt) {
-        if (!is_object($opt)) {
+        if (!is_object($opt) && !is_array($opt)) {
             return '';
         }
         $queryParams = [];

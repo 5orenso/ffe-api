@@ -2,6 +2,10 @@
     "name": "ffe/api",
     "description": "API access to FlyfishEurope",
     "require": {
-        "php": "^5.0"
+        "php": ">=5.4",
+        "ext-curl": "*"
+    },
+    "autoload": {
+        "classmap": ["ffe.php"]
     }
 }

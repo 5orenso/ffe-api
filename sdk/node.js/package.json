@@ -1,8 +1,9 @@
 {
   "name": "@flyfisheurope/ffe-api-sdk",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Flyfish Europe API SDK",
   "main": "ffe.js",
+  "files": ["ffe.js", "demo.js", "README.md"],
   "homepage": "https://github.com/5orenso/ffe-api",
   "repository": {
     "type": "git",
@@ -10,7 +11,7 @@
   },
   "tonicExampleFilename": "demo.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/ffe.test.js"
   },
   "author": {
     "name": "Øistein Sørensen",

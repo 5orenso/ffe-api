@@ -44,7 +44,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"\",\n  \"pass\": \"\"\n}"
+              "raw": "{\n  \"email\": \"you@example.com\",\n  \"pass\": \"your-password\"\n}"
             }
           }
         }
@@ -650,7 +650,7 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "",
+                  "value": "23446",
                   "description": ""
                 }
               ]

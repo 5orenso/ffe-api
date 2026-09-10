@@ -6,6 +6,7 @@ Flyfish Europe REST API Client examples.
 
 - [Client side Javascript SDK](javascript/)
 - [Node.js server side SDK](node.js/)
+- [PHP SDK example](php/)
 
 
 ## Other resources
