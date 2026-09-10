@@ -8,7 +8,7 @@ Public documentation and client SDKs for the Flyfish Europe Dealer JSON REST API
 
 Three things live here:
 
-- **Endpoint docs**: `README.md` (auth, status codes, index), `openapi.yaml` (source of truth) and the generated per-resource pages in `docs/reference/`. The root `brands.md`, `categories.md`, `products.md`, `baskets.md` are redirect stubs kept for old links.
+- **Endpoint docs**: `README.md` (auth, status codes, index), `openapi.yaml` (source of truth) and the generated per-resource pages in `docs/reference/`. The root `brands.md`, `categories.md`, `products.md`, `baskets.md` are redirect stubs kept for old links. The guide for dealers lives in `docs/` (see Guide layout below).
 - **SDKs** in `sdk/`: `sdk/node.js/ffe.js` (published to npm as `@flyfisheurope/ffe-api-sdk`) and `sdk/php/ffe.php` (composer name `ffe/api`).
 - **Examples** in `example/`: browser JavaScript, Node.js and PHP.
 
@@ -98,3 +98,37 @@ The per-resource pages are now generated into `docs/reference/` by `scripts/gen-
 - `availability` dates are `D.M.YY`/`DD.MM.YY`, not ISO.
 - `/login/` and the POS write operations are marked `x-verified: false` in the spec.
 - The test dealer account only sees Simms categories, so brand-filter behaviour on categories is unverified.
+
+### Guide layout
+
+The dealer-facing guide lives in `docs/`:
+
+- `docs/getting-started.md` — first request walkthrough (curl, Node, PHP).
+- `docs/concepts.md` — data model, variants, availability, images, prices, pagination, rate limiting.
+- `docs/recipes/` — complete, runnable scripts (sync catalog, keep content updated, stock and price lookup, ordering with baskets).
+- `docs/platforms/` — where a sync script fits into a given shop or language.
+- `docs/reference/` — generated per-resource pages; do not hand-edit (see Endpoint doc template above).
+- `docs/errors.md`, `docs/troubleshooting.md`, `docs/faq.md`.
+- `docs/README.md` — index of the above.
+
+Rules for touching the guide:
+
+- Recipe pages embed complete Node and PHP scripts. Every Node script must be run live with `FFE_TOKEN` before a page edit is merged.
+- Every list request in guide code passes `limit`: the default page size is 25 and `articleNoIn` batches are silently truncated without it.
+- `unique=true` is never used in guide code — it returns HTTP 504 in every observed call. Variants are grouped client-side by brand + `nameDisplay` instead.
+- Facts in the guide come only from `openapi.yaml` and `docs/reference/`, never assumption.
+- Doc-wide checks to run before merging a guide change:
+
+```bash
+# run from the repository root
+# every relative link target exists (ignores http(s), mailto, and pure anchors)
+for f in README.md docs/README.md $(find docs -name '*.md' -not -path 'docs/superpowers/*'); do d=$(dirname "$f"); grep -o '](\([^)#]*\)' "$f" | sed 's/](//' | grep -v -E '^(https?:|mailto:|$)' | while read -r t; do [ -e "$d/$t" ] || echo "MISSING $f -> $t"; done; done
+grep -rn -E 'TODO|TBD' docs README.md --include=*.md | grep -v docs/superpowers || true
+grep -rn -i 'password\|salt\|hash\|security' docs README.md --include=*.md | grep -v docs/superpowers | grep -v docs/reference || true  # generated pages may name the login field and a checksum field
+grep -rn 'eyJ' docs README.md --include=*.md | grep -v docs/superpowers || true
+```
+
+All four must print nothing (the link check prints only `MISSING` lines when broken; the
+banned-word check also excludes `docs/reference/`, since those generated pages may
+legitimately name the `/login/` request's `pass` field or a `gtin`/EAN checksum field
+using one of the banned words).

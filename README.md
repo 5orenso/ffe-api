@@ -1,87 +1,145 @@
-# Flyfish Europe JSON REST API
+# Flyfish Europe Dealer API
 
-## Introduction
+The Flyfish Europe Dealer API is a JSON REST API for dealers with access to our
+DealerWeb. It gives you our brands, categories and products (plus your own basket),
+so you can integrate our catalog into your web shop or point-of-sale system. You
+create an API token in DealerWeb under **My Account**, at
+[dealer.flyfisheurope.com](https://dealer.flyfisheurope.com/), before making your
+first call.
 
-This API is for Flyfish Europe Dealers with access to our DealerWeb.
+
+## Your first product in 10 minutes
+
+1. **Get a token.** In DealerWeb, under **My Account**, create a **server-side
+   token** for code that runs on your own server, or a **client-side token** for
+   JavaScript that runs in a customer's browser. Keep server-side tokens secret —
+   anyone who has one can read your data with it.
+
+2. **Make one request.**
+
+    ```bash
+    curl -H 'Authorization: Bearer <your token>' 'https://dealer.flyfisheurope.com/api/brands/'
+    ```
+
+3. **Or use an SDK.**
+
+    ```bash
+    npm install @flyfisheurope/ffe-api-sdk --save
+    ```
+    ```javascript
+    const FFE = require('@flyfisheurope/ffe-api-sdk');
+
+    // FFE_TOKEN holds your DealerWeb API token.
+    const ffe = new FFE(process.env.FFE_TOKEN);
+
+    ffe.brands()
+        .then((brands) => console.log(brands))
+        .catch((error) => console.error(error));
+    ```
+    ```php
+    <?php
+    require 'ffe.php';
+
+    // FFE_TOKEN holds your DealerWeb API token.
+    $ffe = new FFE(getenv('FFE_TOKEN'));
+
+    $result = $ffe->brands();
+    print_r($result);
+    ```
+
+Full walkthrough — including fetching a single product by `articleno` — in
+[Getting started](docs/getting-started.md).
 
 
-## Overview
+## Learning path
 
-With this API you will have access to all our brands, categories and products. You should be able to integrate all our
-products into your web shop or point of sale system with ease.
+1. [Getting started](docs/getting-started.md) — your first product in curl, Node.js
+   and PHP, in about 10 minutes.
+2. [Concepts](docs/concepts.md) — the data model: variants, availability, images,
+   prices, pagination, rate limiting.
+3. **Recipes** — complete, runnable scripts:
+   - [Sync your catalog](docs/recipes/sync-catalog.md)
+   - [Keep content updated](docs/recipes/keep-content-updated.md)
+   - [Stock and price lookup](docs/recipes/stock-and-price-lookup.md)
+   - [Ordering with baskets](docs/recipes/ordering-with-baskets.md)
+4. **Platforms** — wiring a sync script into your shop:
+   - [PHP](docs/platforms/php.md)
+   - [Node.js](docs/platforms/nodejs.md)
+   - [Browser](docs/platforms/browser.md)
+   - [WooCommerce](docs/platforms/woocommerce.md)
+   - [PrestaShop](docs/platforms/prestashop.md)
+   - [Magento](docs/platforms/magento.md)
+   - [Hosted shops (Shopify, Wix, and similar)](docs/platforms/hosted-shops.md)
+   - [Other languages](docs/platforms/other-languages.md)
+5. **Reference** — every endpoint, generated from [openapi.yaml](openapi.yaml):
+   - [/login/](docs/reference/login.md)
+   - [/api/brands/](docs/reference/brands.md)
+   - [/api/categories/](docs/reference/categories.md)
+   - [/api/products/](docs/reference/products.md)
+   - [/api/baskets/](docs/reference/baskets.md)
+   - [/api/dealers/info](docs/reference/dealers.md)
+   - [/api/pos/sales/](docs/reference/pos-sales.md)
+   - [/api/pos/products/](docs/reference/pos-products.md)
+   - Prefer Postman? Import
+     [postman/ffe-api.postman_collection.json](postman/ffe-api.postman_collection.json)
+     and set the `token` variable.
+6. [Errors](docs/errors.md) — every HTTP status the API is verified to return, the
+   exact body, and what to do about it.
+7. [Troubleshooting](docs/troubleshooting.md) — symptom-first fixes for the problems
+   developers hit most often.
+8. [FAQ](docs/faq.md) — short answers to the questions that come up most.
+
+
+## SDKs
+
+- [Node.js](sdk/node.js/) — published on npm as `@flyfisheurope/ffe-api-sdk`.
+  ```bash
+  npm install @flyfisheurope/ffe-api-sdk --save
+  ```
+- [PHP](sdk/php/) — one dependency-free file, `ffe.php` (PHP >= 5.4 with curl).
+- [Browser JavaScript](sdk/javascript/) — demo client for a web page, not a
+  general-purpose SDK.
 
 
 ## Authentication
 
-Preferred way of authentication is with an API token. You can create tokens inside the DealerWeb. Tokens can be of 2
-different kinds:
+Every request sends your token in the `Authorization` header:
 
-- __Server side token__ should be used only on your servers where no one but you have access. It's like a password to
-your data.
-- __Client side token__ should be used inside client side applications like a javascript component on a webpage.
-
-Your token is sent to our servers inside the HTTP request headers:
 ```
 Authorization: Bearer <your jwt token>
 ```
 
+You create tokens in DealerWeb under **My Account**. There are two kinds:
 
-## HTTP Status Codes
-
-We use standard HTTP status codes in our responses.
-
-Example of the mos† common codes are:
-- __200__ for successful GET requests.
-- __201__ for new inserts.
-- __202__ for updates.
-- __401__ for unauthorized request.
-- __401__ for forbidden request.
-
-[All HTTP status codes can be found on Wikipedia.](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+- __Server-side token__ — use it only in code that runs on your own server, where no
+  one but you has access. Keep it secret.
+- __Client-side token__ — safe to embed in client-side code, such as a JavaScript
+  component on a web page.
 
 
-## Rate limit
+## HTTP status codes and rate limits
 
-Currently we do not have rate limiting activated, but we will activate and throttle over active usage without any
-further notice. Status code of throttling is:
-- __429__ Too many requests. Slow down your pace.
+The API uses standard HTTP status codes. What's verified today:
 
+- __200__ on every successful call — including a call for an id that doesn't exist,
+  which comes back as 200 with `{}` rather than 404.
+- __401__ on a malformed or invalid token: `{"status":401,"message":"Invalid
+  JwtToken: UnauthorizedError","reason":"jwt malformed"}`. An expired token has not
+  been observed.
+- __403__ when the `Authorization` header is missing entirely (observed 2026-09-10 on
+  `/api/brands/`): `{"status":403,"message":"Forbidden! No access to this
+  endpoint!"}`.
+- __504__ on every observed call to `/api/products/?unique=true`; don't send
+  `unique=true` today.
+- __429__ is reserved for rate limiting ("Too many requests"), but rate limiting is
+  not active yet, so it has not been observed.
 
-# API endpoints
-
-Full reference, generated from [openapi.yaml](openapi.yaml):
-
-- [/login/](docs/reference/login.md)
-- [/api/brands/](docs/reference/brands.md)
-- [/api/categories/](docs/reference/categories.md)
-- [/api/products/](docs/reference/products.md)
-- [/api/baskets/](docs/reference/baskets.md)
-- [/api/dealers/info](docs/reference/dealers.md)
-- [/api/pos/sales/](docs/reference/pos-sales.md)
-- [/api/pos/products/](docs/reference/pos-products.md)
-
-Prefer Postman? Import [postman/ffe-api.postman_collection.json](postman/ffe-api.postman_collection.json) and set the `token` variable.
-
-You can create an API token on the DealerWeb under My Account.
+Full table, bodies and what to do about each one: [Errors](docs/errors.md).
 
 
-# SDKs
+## Support
 
-- [Server side JavaScript (Node.js)](./sdk/node.js/)
-    ```bash
-    $ npm install @flyfisheurope/ffe-api-sdk --save
-    ```
-    Test it online at RunKit: https://npm.runkit.com/@flyfisheurope/ffe-api-sdk
-- [PHP](./sdk/php/)
-- [Client side JavaScript](./sdk/javascript/)
-
-
-# Code examples
-
-- [Example code](./example/)
-
-
-# Other resources
+Questions, issues or feedback go through DealerWeb.
 
 - [Consumer web](https://flyfisheurope.com/)
 - [Dealer web](https://dealer.flyfisheurope.com/)

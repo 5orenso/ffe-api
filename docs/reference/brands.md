@@ -74,13 +74,22 @@ _None._
 ]
 ```
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {
   "status": 401,
   "message": "Invalid JwtToken: UnauthorizedError",
   "reason": "jwt malformed"
+}
+```
+
+**403** No Authorization header (observed 2026-09-10 on /api/brands/)
+
+```json
+{
+  "status": 403,
+  "message": "Forbidden! No access to this endpoint!"
 }
 ```
 
@@ -161,7 +170,7 @@ an empty object body — see the unknownBrandno example.
 {}
 ```
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {

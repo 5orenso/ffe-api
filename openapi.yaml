@@ -130,6 +130,8 @@ paths:
                   countPsNewFall: 0
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/brands/{brandno}:
     get:
       tags: [brands]
@@ -1423,7 +1425,7 @@ components:
       bearerFormat: JWT
   responses:
     Unauthorized:
-      description: Missing or invalid token
+      description: Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
       content:
         application/json:
           schema:
@@ -1432,6 +1434,15 @@ components:
             status: 401
             message: "Invalid JwtToken: UnauthorizedError"
             reason: jwt malformed
+    Forbidden:
+      description: No Authorization header (observed 2026-09-10 on /api/brands/)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 403
+            message: "Forbidden! No access to this endpoint!"
   schemas:
     Error:
       type: object

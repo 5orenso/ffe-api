@@ -36,7 +36,7 @@ what this collection path actually implements: POST, GET, HEAD.
 
 **200** Array of products
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {
@@ -115,7 +115,7 @@ Content types: `application/json`
 
 **201** Product stored
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {
@@ -211,7 +211,7 @@ it did not reproduce.
 {}
 ```
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {
@@ -292,7 +292,7 @@ Content types: `application/json`
 
 **202** Product updated
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {

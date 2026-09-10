@@ -301,7 +301,7 @@ cut, agent_dealers omitted); the schema is authoritative.
 }
 ```
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {

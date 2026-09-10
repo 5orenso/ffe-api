@@ -104,7 +104,7 @@ requested explicitly.
 ]
 ```
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {
@@ -204,7 +204,7 @@ response has no `brand` field, unlike list responses.
 {}
 ```
 
-**401** Missing or invalid token
+**401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
 
 ```json
 {
