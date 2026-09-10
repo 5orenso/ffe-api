@@ -3,11 +3,15 @@
   "version": "1.1.0",
   "description": "Flyfish Europe API SDK",
   "main": "ffe.js",
-  "files": ["ffe.js", "demo.js", "README.md"],
+  "files": [
+    "ffe.js",
+    "demo.js",
+    "README.md"
+  ],
   "homepage": "https://github.com/5orenso/ffe-api",
   "repository": {
     "type": "git",
-    "url": "https://github.com/5orenso/ffe-api"
+    "url": "git+https://github.com/5orenso/ffe-api.git"
   },
   "tonicExampleFilename": "demo.js",
   "scripts": {
@@ -17,6 +21,5 @@
     "name": "Øistein Sørensen",
     "email": "sorenso@gmail.com"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
