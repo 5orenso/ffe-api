@@ -844,18 +844,16 @@ paths:
         (zero lines, `qty: 0`, `total: 0`, `retailTotal: 0`) for the
         test account; `GET /api/baskets/?presale=1` returned a
         byte-identical response body - no observable difference with
-        the test account. Because the basket had no lines, the shape of
-        a populated line could not be verified live - see the
-        `BasketLine` schema's own description.
+        the test account. The shape of a populated line was verified
+        separately, via PATCH /api/baskets/ (setBasketLine) - see the
+        live run in docs/recipes/ordering-with-baskets.md.
 
         Both SDKs wrap this endpoint: Node ffe.baskets(opt) and PHP
         $ffe->baskets($opt).
 
-        Write operations (adding lines, placing orders) are not
-        documented here yet; the OPTIONS response advertises methods
-        GET,HEAD,PUT,PATCH,POST,DELETE, but they have not been
-        verified. (The plain `Allow` header on that same OPTIONS
-        response omitted POST: `GET,HEAD,PUT,PATCH,DELETE`.)
+        To add, update or remove lines use PATCH (see setBasketLine);
+        placing the order itself happens in DealerWeb and is not part of
+        this API.
       parameters:
         - name: presale
           in: query
@@ -872,17 +870,119 @@ paths:
               schema:
                 $ref: "#/components/schemas/Basket"
               example:
-                lines: []
+                lines:
+                  - currency: null
+                    aPrice: 6599.6
+                    eurAPrice: 712.7
+                    discount: 0
+                    aFullPrice: "6599.6"
+                    eurAFullPrice: "712.7"
+                    retailPrice: null
+                    brandno: Simms
+                    brand: simms
+                    maingroupno: 101
+                    articleno: "13960-096-10"
+                    fullPrice: 6599.6
+                    productName: G4Z Stockingfoot Slate XS
+                    date: "2026-09-10T12:28:26+02:00"
+                    productNo: null
+                    name: null
+                    qty: 1
+                    price: 6599.6
+                    id: 613599
+                    addedFrom: api
+                    addedBy: customer@example.com
+                    info: null
+                    total: 6599.6
+                    eurFullPrice: 712.7
+                    eurPrice: 712.7
+                    eurTotal: 712.7
+                    idx: 0
+                    sortIdx: 0
+                    object:
+                      id: 613599
+                      articleno: "13960-096-10"
+                      name: G4Z Stockingfoot Slate XS
+                      brand: simms
                 pricelistno: 44
                 customerno: 999999
                 emailaddress: customer@example.com
                 companyName: Your customer name
-                qty: 0
-                total: 0
-                retailTotal: 0
-                summary: {}
+                qty: 1
+                total: 6599.6
+                retailTotal: null
+                summary:
+                  Simms:
+                    total: 6599.6
+                    categories:
+                      Waders:
+                        total: 6599.6
+                currency: NOK
         "401":
           $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [baskets]
+      operationId: setBasketLine
+      x-sdk-node: "ffe.setBasketLine({ id: 613599, qty: 1 })"
+      x-sdk-php: "$ffe->setBasketLine(613599, 1)"
+      summary: Add, update or remove one basket line
+      description: |
+        Add, update or remove one line in your basket. Verified live
+        2026-09-10 against the test account's basket; see the live run
+        in docs/recipes/ordering-with-baskets.md for the full
+        request/response log.
+
+        The body field `id` is the numeric product `id` from
+        `GET /api/products/` (e.g. `613599`), NOT `articleno` (the SKU
+        string, e.g. "13960-096-10"). Sending `articleno` or `productNo`
+        instead of `id` still returns a `201` that looks successful, but
+        it's a silent no-op: `data.id` stays `null` and nothing is
+        persisted.
+
+        `qty: 0` removes the line. Any other `qty` upserts it in place -
+        sending this same call again with a new `qty` for an `id` already
+        in the basket updates that one line rather than adding a
+        duplicate. Add, update and remove are all the same call.
+
+        Always confirm the result with `GET /api/baskets/` rather than
+        trusting the status code alone: `POST /api/baskets/` (any body)
+        returns `400 {"error":"No such route","status":400}`, and
+        `PUT /api/baskets/` returns a deceptive `201
+        {"status":201,"message":"Basket updated"}` without changing
+        anything. Use `PATCH` only. The `Access-Control-Allow-Methods`
+        header on `OPTIONS /api/baskets/` lists `POST`, but the plain
+        `Allow` header (and this endpoint's actual behaviour) does not -
+        that CORS header is not a reliable route inventory.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BasketLineUpdate"
+            example:
+              id: 613599
+              qty: 1
+      responses:
+        "201":
+          description: Basket line added, updated or removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BasketUpdateResponse"
+              example:
+                status: 201
+                message: Basket update
+                data:
+                  qty: 1
+                  price: null
+                  retailPrice: null
+                  id: 613599
+                  addedFrom: api
+                  addedBy: customer@example.com
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/dealers/info:
     get:
       tags: [dealers]
@@ -2226,23 +2326,21 @@ components:
     Basket:
       type: object
       description: |
-        The dealer's current basket. Verified live via
-        GET /api/baskets/ and GET /api/baskets/?presale=1 (identical
-        response body); the test account's basket had zero lines, so
-        this schema reflects an empty-basket response. Pre-existing
-        (pre-verification) documentation in baskets.md additionally
-        showed a top-level `currency` field (e.g. "NOK") on a populated
-        basket; that field was not present in the verified (empty)
-        response and could not be confirmed live - it may only appear
-        once the basket has lines, or the old documentation may be
-        stale.
+        The dealer's current basket. Verified live via GET /api/baskets/
+        and GET /api/baskets/?presale=1 (identical response body) for an
+        empty basket, and via PATCH /api/baskets/ (setBasketLine) -
+        verified live 2026-09-10, twice independently, for a basket with
+        one line added, updated and removed; see the live run in
+        docs/recipes/ordering-with-baskets.md. Every before/after
+        GET /api/baskets/ pair across both runs was byte-for-byte
+        identical, confirming the basket is fully restored once a line
+        is removed with qty: 0.
       properties:
         lines:
           type: array
           description: |
-            Observed as an empty array ([]) for the test account's
-            basket. See BasketLine for the (unverified) shape of a
-            populated line.
+            The basket's line items. Empty ([]) between orders; see
+            BasketLine for the verified shape of a populated line.
           items:
             $ref: "#/components/schemas/BasketLine"
         pricelistno:
@@ -2259,39 +2357,204 @@ components:
           description: Total quantity across all lines. Observed as 0 with an empty basket.
         total:
           type: number
-          description: Dealer total. Observed as 0 with an empty basket.
+          description: Dealer total. Observed as 0 with an empty basket; matches the sum of each line's `total` with lines in it.
         retailTotal:
           type: number
-          description: Retail total. Observed as 0 with an empty basket.
+          nullable: true
+          description: |
+            Retail total. Observed as 0 with an empty basket, and as
+            null on a populated basket whose line's retailPrice was
+            itself null (the normal case for a line added via
+            setBasketLine, which never sends a retail price).
+        currency:
+          type: string
+          nullable: true
+          description: |
+            Absent (the key is not present at all) on an empty basket -
+            not null, missing entirely. Present as the dealer account's
+            currency code (e.g. "NOK") once the basket has a line in it.
         summary:
           type: object
           description: |
-            Observed as an empty object ({}) with an empty basket; its
-            structure with a populated basket was not verified live.
+            Observed as an empty object ({}) with an empty basket. With
+            one line in it, observed as dealer totals grouped by brand
+            and then by category, e.g.
+            `{"Simms": {"total": 6599.6, "categories": {"Waders": {"total": 6599.6}}}}`
+            - shape with multiple brands/categories not verified live.
     BasketLine:
       type: object
       description: |
-        Not verified live: the test account's basket was empty. Shape
-        taken from the previous documentation.
+        One line in the basket, as added/updated/removed by
+        PATCH /api/baskets/ (see setBasketLine) and read back via
+        GET /api/baskets/. Verified live 2026-09-10 across two
+        independent runs against the same product (id 613599) - see the
+        live run in docs/recipes/ordering-with-baskets.md.
       properties:
-        id: { type: integer }
-        name: { type: string }
-        qty: { type: integer }
-        currency: { type: string }
-        price: { type: number, description: Dealer price per unit after discount }
-        fullPrice: { type: number, description: Dealer price per unit before discount }
-        discount: { type: number }
-        retailPrice: { type: number }
-        total: { type: number }
-        eurPrice: { type: number }
-        eurFullPrice: { type: number }
-        eurTotal: { type: number }
-        date: { type: string, format: date-time }
-        addedBy: { type: string }
-        addedFrom: { type: string }
-        info: { type: string, nullable: true }
+        currency:
+          type: string
+          nullable: true
+          description: Observed null on every line verified live.
+        aPrice:
+          type: number
+          description: |
+            Dealer price per unit after discount, in the basket's
+            currency. Unlike price/fullPrice below, this stays constant
+            when qty changes (verified live: unchanged going from
+            qty 1 to qty 2) - it is a genuine per-unit price.
+        eurAPrice:
+          type: number
+          description: aPrice converted to EUR.
+        discount:
+          type: number
+        aFullPrice:
+          type: string
+          description: |
+            Dealer price per unit before discount, in the basket's
+            currency, as a NUMERIC STRING (e.g. "6599.6") - verified
+            live; note this differs from every other price-shaped field
+            on this object, which are numbers.
+        eurAFullPrice:
+          type: string
+          description: aFullPrice converted to EUR, also a numeric string (e.g. "712.7") - verified live.
+        retailPrice:
+          type: number
+          nullable: true
+        brandno:
+          type: string
+          description: 'Brand identifier as seen elsewhere in the catalog, e.g. "Simms".'
+        brand:
+          type: string
+          description: 'Lowercase brand slug, e.g. "simms".'
+        maingroupno:
+          type: integer
+        articleno:
+          type: string
+        fullPrice:
+          type: number
+          description: |
+            The line's extended dealer total before discount (unit price
+            x qty) - verified live: 6599.6 at qty 1, 13199.2 at qty 2 for
+            the same product, i.e. it scales with qty rather than
+            staying a flat per-unit price. Equal to `total` when
+            discount is 0.
+        productName:
+          type: string
+        date:
+          type: string
+          format: date-time
+        productNo:
+          type: string
+          nullable: true
+          description: |
+            Observed null even on a successfully added line - not the
+            same field as articleno, and not usable as a setBasketLine
+            input (see setBasketLine's description).
+        name:
+          type: string
+          nullable: true
+        qty:
+          type: integer
+        price:
+          type: number
+          description: |
+            Despite the name, this is the line's extended dealer total
+            (unit price x qty), NOT a per-unit price - verified live:
+            6599.6 at qty 1, 13199.2 at qty 2 for the same product.
+            Identical to `total` in every observation so far. For the
+            true per-unit price, see aPrice.
+        id:
+          type: integer
+          description: |
+            The numeric product id (matches Product.id) - the same value
+            used to add, update or remove this line via setBasketLine.
+        addedFrom:
+          type: string
+          description: 'e.g. "api" for a line added through this API.'
+        addedBy:
+          type: string
+          format: email
+        info:
+          type: string
+          nullable: true
+        total:
+          type: number
+          description: |
+            The line's extended dealer total (identical to `price` in
+            every observation so far) - verified live: 6599.6 at qty 1,
+            13199.2 at qty 2 for the same product.
+        eurFullPrice:
+          type: number
+        eurPrice:
+          type: number
+        eurTotal:
+          type: number
+        idx:
+          type: integer
+        sortIdx:
+          type: integer
         object:
-          $ref: "#/components/schemas/Product"
+          type: object
+          additionalProperties: true
+          description: Snapshot of the product at the time it was added.
+    BasketLineUpdate:
+      type: object
+      description: |
+        Request body for PATCH /api/baskets/ (setBasketLine). Verified
+        live 2026-09-10; see the live run in
+        docs/recipes/ordering-with-baskets.md.
+      required: [id, qty]
+      properties:
+        id:
+          type: integer
+          description: |
+            The numeric product id from GET /api/products/ (Product.id) -
+            NOT articleno. Sending articleno or productNo here is
+            silently accepted but never resolves to a product.
+        qty:
+          type: integer
+          description: |
+            Target quantity for this product's basket line. 0 removes
+            the line; any other value upserts it in place (no duplicate
+            line is created).
+      example:
+        id: 613599
+        qty: 1
+    BasketUpdateResponse:
+      type: object
+      description: |
+        Response body for PATCH /api/baskets/ (setBasketLine). Verified
+        live 2026-09-10. A 201 here does not guarantee the write
+        persisted - always confirm with GET /api/baskets/, and check
+        data.id in particular (see its description below).
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            qty:
+              type: integer
+            price:
+              type: number
+              nullable: true
+            retailPrice:
+              type: number
+              nullable: true
+            id:
+              type: integer
+              nullable: true
+              description: |
+                The numeric product id the write applied to. null means
+                nothing was persisted - typically because the request
+                body sent articleno or productNo instead of the numeric
+                id.
+            addedFrom:
+              type: string
+            addedBy:
+              type: string
+              format: email
     DealerInfo:
       type: object
       description: |

@@ -134,6 +134,37 @@ class FFE {
     }
 
     /**
+     * Add, update or remove one basket line. Verified live 2026-09-10; see
+     * docs/reference/baskets.md (setBasketLine).
+     * @param int $id The numeric product id from products()/product()
+     *  (Product['id']) - NOT articleno. The live API silently accepts
+     *  articleno/productNo and returns a 201 that looks successful but
+     *  never persists anything (data.id stays null); to catch that
+     *  mistake before it ever reaches the API, this method throws
+     *  InvalidArgumentException if $id isn't a positive integer (or a
+     *  digit-only string) - (int) casting a SKU string like
+     *  "13960-096-10" would otherwise silently truncate to a different,
+     *  wrong product id (13960).
+     * @param int $qty Target quantity for this product's line. 0 removes
+     *  the line; any other value upserts it in place (no duplicate line).
+     * @return array {status: 201, message: 'Basket update', data: {...}}
+     *  Always confirm the result with baskets() - a 201 here does not
+     *  guarantee the write persisted (check data['id']).
+     * @throws InvalidArgumentException If $id is not a positive integer
+     *  (or digit-only string), or $qty is not a non-negative integer (or
+     *  digit-only string).
+     */
+    public function setBasketLine($id, $qty) {
+        if ((!is_int($id) && !(is_string($id) && ctype_digit($id))) || (int) $id <= 0) {
+            throw new InvalidArgumentException('setBasketLine: id must be the numeric product id (Product[id]) from products()/product(), not articleno');
+        }
+        if ((!is_int($qty) && !(is_string($qty) && ctype_digit($qty))) || (int) $qty < 0) {
+            throw new InvalidArgumentException('setBasketLine: qty must be a non-negative integer (0 removes the line)');
+        }
+        return $this->patch('/api/baskets/', ['id' => (int) $id, 'qty' => (int) $qty]);
+    }
+
+    /**
      * Information about the dealer account the token belongs to
      * @return array See docs/reference/dealers.md
      */
@@ -202,12 +233,32 @@ class FFE {
         return $this->curlExec($curl);
     }
 
+    /**
+     * Sends $data as a JSON body with the PATCH method. Verified live
+     * 2026-09-10 against PATCH /api/baskets/ (setBasketLine); see
+     * docs/reference/baskets.md.
+     */
+    private function patch($resource, $data) {
+        $this->debug('PATCH on ' . $resource);
+        $curl = $this->getCurl($resource);
+        $body = json_encode($data);
+        $this->debug('body=' . $body);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $this->getHeaders(['Content-Type: application/json']));
+
+        return $this->curlExec($curl);
+    }
+
     private function curlExec($curl) {
         $response = curl_exec($curl);
         $info = curl_getinfo($curl);
         $this->curlInfo = $info;
 
-        if ($response === false || $info['http_code'] != 200) {
+        // Accept any 2xx (e.g. the 201 that PATCH /api/baskets/ returns on
+        // success), not just 200 - previously any non-200 status threw,
+        // even a genuine success.
+        if ($response === false || $info['http_code'] < 200 || $info['http_code'] >= 300) {
             $error = 'No data from API';
             if ($info['http_code'] === 401) {
                 $error = 'Not authorized';
@@ -233,11 +284,15 @@ class FFE {
         return $curl;
     }
 
-    private function getHeaders() {
+    /**
+     * @param array $extra Optional extra header lines (e.g.
+     *  ['Content-Type: application/json']) appended to the base headers.
+     */
+    private function getHeaders($extra = []) {
         $headers = [
             'Authorization: Bearer ' . $this->jwtToken
         ];
-        return $headers;
+        return array_merge($headers, $extra);
     }
 
     private function createUrl($resource) {

@@ -51,6 +51,7 @@ paths:
           description: Array of brands
           content:
             application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Brand" } }
               example:
                 - brandno: simms
                   name: Simms
@@ -75,6 +76,7 @@ paths:
           description: The brand
           content:
             application/json:
+              schema: { $ref: "#/components/schemas/Brand" }
               examples:
                 found:
                   summary: Brand found
@@ -84,6 +86,27 @@ paths:
                 unknownBrandno:
                   summary: Unknown brandno returns an empty object
                   value: {}
+    patch:
+      tags: [brands]
+      operationId: patchBrand
+      summary: Patch brand
+      parameters:
+        - name: brandno
+          in: path
+          required: true
+          schema: { type: string }
+          example: simms
+          description: Brand id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+            example:
+              name: x
+      responses:
+        "200":
+          description: ok
   /api/brands/nosdk:
     get:
       tags: [brands]
@@ -101,3 +124,55 @@ components:
           example:
             status: 401
             message: Authentication Required
+  schemas:
+    Brand:
+      type: object
+      description: |
+        One brand as the dealer sees it.
+      properties:
+        id:
+          type: integer
+        brandno:
+          type: string
+          description: "Lowercase brand id | used as the brand filter."
+        counts:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Number of products.
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              small:
+                type: string
+        status:
+          type: string
+          enum: [active, hidden]
+          nullable: true
+          description: |
+            Multi-line
+            description.
+        stock:
+          oneOf:
+            - type: string
+            - type: integer
+          description: Availability text or count.
+        lines:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Line"
+              - type: object
+                properties:
+                  qty:
+                    type: integer
+                    description: Quantity.
+    Line:
+      type: object
+      properties:
+        sku:
+          type: string
+          description: Article number.

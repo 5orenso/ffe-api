@@ -50,6 +50,7 @@ new FFE(token, options)
 | `products(opt)` | `GET /api/products/` | `opt`: `limit`, `offset`, `brand`, `maingroup`, `intgroup`, `subgroup`, `mainCat`, `intCat`, `subCat`, `gtin`, `articleNoIn`, `search`, `nameDisplay`, `unique`, `isNew` (`unique` is currently unreliable on the live API; see [docs/reference/products.md](../../docs/reference/products.md)) |
 | `product(articleno)` | `GET /api/products/:articleno` | |
 | `baskets(opt)` | `GET /api/baskets/` | `opt`: `presale` |
+| `setBasketLine({ id, qty })` | `PATCH /api/baskets/` | `id` must be the numeric product `id` from `products()`/`product()` (not `articleno`); `qty: 0` removes the line, any other value upserts it in place. Throws `TypeError` if `id` isn't a number. Always confirm the result with `baskets()` — see [docs/reference/baskets.md](../../docs/reference/baskets.md). |
 | `dealerInfo()` | `GET /api/dealers/info` | |
 | `posSales(opt, { id })` | `GET /api/pos/sales/[:id]` | |
 | `posAddSale(body)` | `POST /api/pos/sales/` | |

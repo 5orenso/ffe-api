@@ -7,6 +7,7 @@ Flyfish Europe REST API Client examples.
 - [Client side Javascript SDK](javascript/)
 - [Node.js server side SDK](node.js/)
 - [PHP SDK example](php/)
+- [Recipe scripts](recipes/) — runnable copies of the guide's recipe scripts (Node.js and PHP)
 
 
 ## Other resources

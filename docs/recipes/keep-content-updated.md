@@ -49,8 +49,10 @@ This recipe never overwrites `catalog.json` — see
 
 ## Node.js script
 
-Save this as `keep-content-updated.js`, next to `catalog.json`.
+Save this as `keep-content-updated.js`, next to `catalog.json`. The same file is in this
+repository at [example/recipes/node/keep-content-updated.js](../../example/recipes/node/keep-content-updated.js).
 
+<!-- recipe: example/recipes/node/keep-content-updated.js -->
 ```js
 'use strict';
 // Compare catalog.json against the live API and record content changes.
@@ -144,8 +146,10 @@ FFE_TOKEN=<your token> node keep-content-updated.js
 
 ## PHP script
 
-Save this as `keep-content-updated.php`, next to `ffe.php` and `catalog.json`.
+Save this as `keep-content-updated.php`, next to `ffe.php` and `catalog.json`. The same
+file is in this repository at [example/recipes/php/keep-content-updated.php](../../example/recipes/php/keep-content-updated.php).
 
+<!-- recipe: example/recipes/php/keep-content-updated.php -->
 ```php
 <?php
 // Compare catalog.json against the live API and record content changes.

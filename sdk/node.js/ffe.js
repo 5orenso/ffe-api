@@ -66,6 +66,22 @@ class FFE {
         return this.getEndpoint(`/api/baskets/${this.makeQueryString(opt)}`);
     }
 
+    // Add, update or remove one basket line. `id` must be the numeric
+    // product id from /api/products/ (Product.id) - NOT articleno. The
+    // live API silently accepts articleno/productNo and returns a 201
+    // that looks successful but never persists anything (data.id stays
+    // null), so this throws early instead of making that same mistake.
+    // qty: 0 removes the line; any other qty upserts it in place.
+    setBasketLine({ id, qty } = {}) {
+        if (typeof id !== 'number' || !Number.isFinite(id)) {
+            throw new TypeError('setBasketLine: id must be the numeric product id from /api/products/ (Product.id), not articleno');
+        }
+        if (!Number.isInteger(qty) || qty < 0) {
+            throw new TypeError('setBasketLine: qty must be a non-negative integer (0 removes the line)');
+        }
+        return this.getEndpoint('/api/baskets/', 'PATCH', { id, qty });
+    }
+
     category(categoryno) {
         return this.getEndpoint(`/api/categories/${categoryno}`);
     }

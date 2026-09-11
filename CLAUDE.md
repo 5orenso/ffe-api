@@ -52,8 +52,13 @@ npm run lint:spec       # validate openapi.yaml
 npm run gen:reference   # regenerate docs/reference/*.md (never edit those by hand)
 npm run gen:postman     # regenerate postman/ffe-api.postman_collection.json
 npm test                # generator unit tests
+npm run check           # spec lint + generated reference and Postman collection up to date + recipe pages in sync + doc rules (links, TODO, banned words, tokens)
+npm run sync:recipes    # re-embed example/recipes/* into the recipe pages after editing a script
+FFE_TOKEN=... npm run verify:examples   # run every recipe script against the live API (writes one basket line and removes it)
 FFE_TOKEN=... node scripts/probe.js GET /api/brands/ brands-list   # record a live call to scripts/probes/ (gitignored)
 ```
+
+`.github/workflows/ci.yml` runs `npm test`, `npm run check`, the Node SDK tests and `php -l` on every push; the live `verify:examples` run is manual only.
 
 ## Architecture
 
@@ -63,7 +68,7 @@ Every request sends `Authorization: Bearer <jwt>`. Dealers create tokens in Deal
 
 ### The two SDKs mirror each other
 
-Both SDKs are a single dependency-free class named `FFE` with the same constructor and the same core method names: `login`, `brand`/`brands`, `category`/`categories`, `product`/`products`, `baskets`, `dealerInfo`, and the POS methods (`posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts`), which are implemented in Node and are throwing `Not implemented` stubs in PHP. When adding an endpoint, add it to both SDKs (or an explicit not-implemented stub in PHP), add the operation to `openapi.yaml` with `x-sdk-node`/`x-sdk-php` strings, run `npm run gen:reference` and `npm run gen:postman`, and link the generated page from `README.md`.
+Both SDKs are a single dependency-free class named `FFE` with the same constructor and the same core method names: `login`, `brand`/`brands`, `category`/`categories`, `product`/`products`, `baskets`, `setBasketLine`, `dealerInfo`, and the POS methods (`posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts`), which are implemented in Node and are throwing `Not implemented` stubs in PHP. When adding an endpoint, add it to both SDKs (or an explicit not-implemented stub in PHP), add the operation to `openapi.yaml` with `x-sdk-node`/`x-sdk-php` strings, run `npm run gen:reference` and `npm run gen:postman`, and link the generated page from `README.md`.
 
 Constructor: `new FFE(jwtToken, options)` where `options` may set `hostname`, `port`, `https` (PHP also `debug`). This is how you point the SDK at a local API server (the docs' curl samples use `http://localhost:8000`).
 
@@ -98,6 +103,7 @@ The per-resource pages are now generated into `docs/reference/` by `scripts/gen-
 - `availability` dates are `D.M.YY`/`DD.MM.YY`, not ISO.
 - `/login/` and the POS write operations are marked `x-verified: false` in the spec.
 - The test dealer account only sees Simms categories, so brand-filter behaviour on categories is unverified.
+- Basket writes (2026-09-10, verified live twice, including a real add/update/remove against the dealer's own basket): `PATCH /api/baskets/` with JSON `{id, qty}` — `id` must be the numeric product id from `/api/products/`, NOT `articleno`/`productNo` (those are silently accepted but leave `data.id` null, and nothing is persisted); `qty: 0` removes the line, any other value upserts it in place (no duplicate). `POST /api/baskets/` returns `400 {"error":"No such route","status":400}` and `PUT /api/baskets/` returns a deceptive `201` that changes nothing — PATCH is the only write method that works. `OPTIONS /api/baskets/`'s `Access-Control-Allow-Methods` header lists `POST`, but the plain `Allow` header (and the route table) does not — the CORS header is not a reliable route inventory. See `openapi.yaml`'s `setBasketLine` operation and `docs/recipes/ordering-with-baskets.md`.
 
 ### Guide layout
 
@@ -105,7 +111,7 @@ The dealer-facing guide lives in `docs/`:
 
 - `docs/getting-started.md` — first request walkthrough (curl, Node, PHP).
 - `docs/concepts.md` — data model, variants, availability, images, prices, pagination, rate limiting.
-- `docs/recipes/` — complete, runnable scripts (sync catalog, keep content updated, stock and price lookup, ordering with baskets).
+- `docs/recipes/` — recipe pages (sync catalog, keep content updated, stock and price lookup, ordering with baskets) that embed the runnable scripts kept in `example/recipes/`.
 - `docs/platforms/` — where a sync script fits into a given shop or language.
 - `docs/reference/` — generated per-resource pages; do not hand-edit (see Endpoint doc template above).
 - `docs/errors.md`, `docs/troubleshooting.md`, `docs/faq.md`.
@@ -113,22 +119,9 @@ The dealer-facing guide lives in `docs/`:
 
 Rules for touching the guide:
 
-- Recipe pages embed complete Node and PHP scripts. Every Node script must be run live with `FFE_TOKEN` before a page edit is merged.
+- Recipe pages embed complete Node and PHP scripts. Every recipe script change is run live with `FFE_TOKEN=... npm run verify:examples` before it is merged.
 - Every list request in guide code passes `limit`: the default page size is 25 and `articleNoIn` batches are silently truncated without it.
 - `unique=true` is never used in guide code — it returns HTTP 504 in every observed call. Variants are grouped client-side by brand + `nameDisplay` instead.
 - Facts in the guide come only from `openapi.yaml` and `docs/reference/`, never assumption.
-- Doc-wide checks to run before merging a guide change:
-
-```bash
-# run from the repository root
-# every relative link target exists (ignores http(s), mailto, and pure anchors)
-for f in README.md docs/README.md $(find docs -name '*.md' -not -path 'docs/superpowers/*'); do d=$(dirname "$f"); grep -o '](\([^)#]*\)' "$f" | sed 's/](//' | grep -v -E '^(https?:|mailto:|$)' | while read -r t; do [ -e "$d/$t" ] || echo "MISSING $f -> $t"; done; done
-grep -rn -E 'TODO|TBD' docs README.md --include=*.md | grep -v docs/superpowers || true
-grep -rn -i 'password\|salt\|hash\|security' docs README.md --include=*.md | grep -v docs/superpowers | grep -v docs/reference || true  # generated pages may name the login field and a checksum field
-grep -rn 'eyJ' docs README.md --include=*.md | grep -v docs/superpowers || true
-```
-
-All four must print nothing (the link check prints only `MISSING` lines when broken; the
-banned-word check also excludes `docs/reference/`, since those generated pages may
-legitimately name the `/login/` request's `pass` field or a `gtin`/EAN checksum field
-using one of the banned words).
+- Doc-wide checks before merging a guide change: `npm run check` (from the repository root). It must exit 0. It runs the spec lint, confirms `docs/reference/` matches `openapi.yaml`, confirms every recipe page embeds its `example/recipes/` file unchanged, and applies the four rules implemented in `scripts/check-docs.js`: every relative link target exists, no `TODO`/`TBD`, no `password|salt|hash|security` outside `docs/reference/` (generated pages may name the `/login/` request's `pass` field or a checksum field), and no `eyJ` (a token). Fix the page, never the check.
+- Recipe scripts live in `example/recipes/` (Node and PHP). A recipe page embeds a script through a `<!-- recipe: example/recipes/... -->` marker directly above the code fence; edit the file, then run `npm run sync:recipes`. Never edit the fenced copy in the page.

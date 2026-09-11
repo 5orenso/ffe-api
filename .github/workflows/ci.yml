@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install tooling
+        run: npm install --no-audit --no-fund
+
+      - name: Generator and doc tooling tests
+        run: npm test
+
+      - name: Spec lint, generated files, recipe pages, doc rules
+        run: npm run check
+
+      - name: Node SDK tests
+        run: npm test
+        working-directory: sdk/node.js
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Recipe scripts parse
+        run: for f in example/recipes/node/*.js; do node --check "$f"; done
+
+      - name: PHP syntax check
+        run: |
+          set -e
+          php -l sdk/php/ffe.php
+          php -l example/php/ffe.php
+          for f in example/recipes/php/*.php; do php -l "$f"; done

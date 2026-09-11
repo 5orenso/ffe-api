@@ -8,8 +8,12 @@ import, a database seed, or a CSV export.
 A `catalog.json` file with one entry per **shop product** — a brand plus a marketing
 name — not one entry per variant. Each entry carries the fields a shop needs (name,
 category, description, features, image, price) and a nested `variants` array with the
-size/colour details (`articleno`, `gtin`, `size`, `color`, `availability`, `price`,
-`currency`, `image`) for every variant that shares that name. The group-level `image`,
+size/colour details (`id`, `articleno`, `gtin`, `size`, `color`, `availability`, `price`,
+`currency`, `image`) for every variant that shares that name. `id` is the numeric product
+id (`Product.id` in [openapi.yaml](../../openapi.yaml)) — keep it on hand if you plan to
+add that variant to a basket later, since `PATCH /api/baskets/` (`setBasketLine`) needs
+this numeric id, not `articleno`; see the
+[ordering with baskets recipe](./ordering-with-baskets.md). The group-level `image`,
 `price` and `currency` are copied from the **first** variant seen for that group — they're
 a convenient fallback for a shop that only wants one price and one photo per shop product,
 not a guarantee that every variant is the same. Live data shows variants of the same shop
@@ -42,7 +46,7 @@ API doesn't group these for you and how the grouping works.
    `nameDisplay` is missing).
 4. For each group, map the fields a shop needs — name, category, description, features,
    image, recommended retail price and currency, each taken from the **first** variant in
-   the group as a fallback — and collect the per-variant fields (`articleno`, `gtin`,
+   the group as a fallback — and collect the per-variant fields (`id`, `articleno`, `gtin`,
    `size`, `color`, `availability`, and that variant's own `price`, `currency` and `image`)
    into a `variants` list. Variants of the same shop product can have different prices and
    images (see [What you get](#what-you-get) above), so prefer the variant-level fields
@@ -51,12 +55,15 @@ API doesn't group these for you and how the grouping works.
 
 ## Node.js script
 
-Save this as `sync-catalog.js`. It has no dependencies beyond the SDK.
+Save this as `sync-catalog.js`. It has no dependencies beyond the SDK. The same file is
+in this repository at [example/recipes/node/sync-catalog.js](../../example/recipes/node/sync-catalog.js).
 
+<!-- recipe: example/recipes/node/sync-catalog.js -->
 ```js
 'use strict';
 // Sync the Flyfish Europe catalog into catalog.json.
 // Run: FFE_TOKEN=<server-side token> node sync-catalog.js
+// Optional: pass one brandno to sync only that brand, e.g. node sync-catalog.js simms
 const fs = require('fs');
 const FFE = require('@flyfisheurope/ffe-api-sdk');
 
@@ -64,6 +71,7 @@ const token = process.env.FFE_TOKEN;
 if (!token) { console.error('Set FFE_TOKEN first.'); process.exit(1); }
 const ffe = new FFE(token);
 const PAGE = 200;
+const onlyBrand = process.argv[2];
 
 function fail(where, data) {
     console.error(`API error in ${where}:`, JSON.stringify(data).slice(0, 300));
@@ -98,6 +106,7 @@ function groupVariants(products) {
             });
         }
         groups.get(key).variants.push({
+            id: p.id,
             articleno: p.articleno,
             gtin: p.tradeItemNumber,
             size: p.size,
@@ -116,10 +125,15 @@ function groupVariants(products) {
     if (!Array.isArray(brands)) fail('brands', brands);
     const catalog = [];
     for (const brand of brands) {
+        if (onlyBrand && brand.brandno !== onlyBrand) continue;
         const products = await allProducts(brand.brandno);
         const grouped = groupVariants(products);
         console.log(`${brand.name}: ${products.length} variants -> ${grouped.length} products`);
         catalog.push(...grouped);
+    }
+    if (onlyBrand && catalog.length === 0) {
+        console.error(`No brand with brandno "${onlyBrand}". Run without an argument to list every brand.`);
+        process.exit(1);
     }
     fs.writeFileSync('catalog.json', JSON.stringify(catalog, null, 2));
     console.log(`Wrote catalog.json with ${catalog.length} products`);
@@ -130,16 +144,21 @@ Run it:
 
 ```bash
 FFE_TOKEN=<your token> node sync-catalog.js
+# Only one brand while you are testing:
+FFE_TOKEN=<your token> node sync-catalog.js simms
 ```
 
 ## PHP script
 
-Save this as `sync-catalog.php`, next to `ffe.php`.
+Save this as `sync-catalog.php`, next to `ffe.php`. The same file is in this repository
+at [example/recipes/php/sync-catalog.php](../../example/recipes/php/sync-catalog.php).
 
+<!-- recipe: example/recipes/php/sync-catalog.php -->
 ```php
 <?php
 // Sync the Flyfish Europe catalog into catalog.json.
 // Run: FFE_TOKEN=<server-side token> php sync-catalog.php
+// Optional: pass one brandno to sync only that brand, e.g. php sync-catalog.php simms
 require 'ffe.php';
 
 $token = getenv('FFE_TOKEN');
@@ -149,6 +168,7 @@ if (!$token) {
 }
 $ffe = new FFE($token);
 $PAGE = 200;
+$onlyBrand = isset($argv[1]) ? $argv[1] : null;
 
 function allProducts($ffe, $brandno, $page) {
     $out = [];
@@ -190,6 +210,7 @@ function groupVariants($products) {
             ];
         }
         $groups[$key]['variants'][] = [
+            'id' => $p['id'],
             'articleno' => $p['articleno'],
             'gtin' => isset($p['tradeItemNumber']) ? $p['tradeItemNumber'] : null,
             'size' => isset($p['size']) ? $p['size'] : null,
@@ -210,10 +231,17 @@ try {
     }
     $catalog = [];
     foreach ($brands as $brand) {
+        if ($onlyBrand !== null && $brand['brandno'] !== $onlyBrand) {
+            continue;
+        }
         $products = allProducts($ffe, $brand['brandno'], $PAGE);
         $grouped = groupVariants($products);
         echo $brand['name'] . ': ' . count($products) . ' variants -> ' . count($grouped) . " products\n";
         $catalog = array_merge($catalog, $grouped);
+    }
+    if ($onlyBrand !== null && count($catalog) === 0) {
+        fwrite(STDERR, "No brand with brandno \"$onlyBrand\". Run without an argument to list every brand.\n");
+        exit(1);
     }
     file_put_contents('catalog.json', json_encode($catalog, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     echo 'Wrote catalog.json with ' . count($catalog) . " products\n";
@@ -227,6 +255,8 @@ Run it:
 
 ```bash
 FFE_TOKEN=<your token> php sync-catalog.php
+# Only one brand while you are testing:
+FFE_TOKEN=<your token> php sync-catalog.php simms
 ```
 
 ## Run it nightly

@@ -42,7 +42,7 @@ from, so both the token and every error need to go somewhere durable.
   small config file kept outside the web root (so a browser can never fetch it directly).
   Never hard-code it into a script that also lives under a public directory.
 - **Errors.** Wrap every SDK call in `try`/`catch` — the PHP SDK throws an `Exception` on
-  any non-200 response or curl failure (`Not authorized` for 401; see
+  any response outside the 2xx range or curl failure (`Not authorized` for 401; see
   [sdk/php/README.md](../../sdk/php/README.md#usage)) — and write what happened to a log
   file instead of letting it vanish.
 

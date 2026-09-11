@@ -34,9 +34,10 @@ try {
 }
 ```
 
-Methods return associative arrays. Any non-200 response or connection problem
-throws an `Exception` (`Not authorized` for 401), so wrap calls in `try/catch`.
-`lastCurlInfo()` returns `curl_getinfo()` for the last request when debugging.
+Methods return associative arrays for any 2xx response (200, 201, ...). Any
+other response or connection problem throws an `Exception` (`Not authorized`
+for 401), so wrap calls in `try/catch`. `lastCurlInfo()` returns
+`curl_getinfo()` for the last request when debugging.
 
 ## Constructor
 
@@ -59,6 +60,7 @@ new FFE($token, $options)
 | `products($opt)` | `GET /api/products/` | `$opt` object or array: `limit`, `offset`, `brand`, `maingroup`, `intgroup`, `subgroup`, `mainCat`, `intCat`, `subCat`, `gtin`, `articleNoIn`, `search`, `nameDisplay`, `unique`, `isNew` (`unique` is currently unreliable on the live API; see [docs/reference/products.md](../../docs/reference/products.md)) |
 | `product($articleno)` | `GET /api/products/:articleno` | |
 | `baskets($opt)` | `GET /api/baskets/` | `$opt` object or array: `presale` |
+| `setBasketLine($id, $qty)` | `PATCH /api/baskets/` | `$id` must be the numeric product `id` from `products()`/`product()` (not `articleno`); `$qty` 0 removes the line, any other value upserts it in place. Throws `InvalidArgumentException` if `$id` isn't a positive integer (or digit-only string) or `$qty` isn't a non-negative integer (or digit-only string) — this catches, for example, passing an `articleno` string straight through, which `(int)` casting would otherwise silently truncate to the wrong id. Always confirm the result with `baskets()` — see [docs/reference/baskets.md](../../docs/reference/baskets.md). |
 | `dealerInfo()` | `GET /api/dealers/info` | |
 | `posAddSale`, `posSales`, `posAddProduct`, `posEditProduct`, `posProducts` | `/api/pos/*` | Not implemented; throw `Exception('Not implemented')` |
 

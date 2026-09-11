@@ -58,8 +58,11 @@ displayed).
 ## `catalog-to-csv.js`
 
 A complete script — nothing beyond Node's built-in `fs` module. Save it as
-`catalog-to-csv.js` next to `catalog.json` and run `node catalog-to-csv.js`.
+`catalog-to-csv.js` next to `catalog.json` and run `node catalog-to-csv.js`. The same
+file is in this repository at
+[example/recipes/node/catalog-to-csv.js](../../example/recipes/node/catalog-to-csv.js).
 
+<!-- recipe: example/recipes/node/catalog-to-csv.js -->
 ```js
 'use strict';
 // Convert catalog.json into catalog.csv for a hosted shop's CSV import.

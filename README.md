@@ -99,6 +99,7 @@ Full walkthrough — including fetching a single product by `articleno` — in
 - [PHP](sdk/php/) — one dependency-free file, `ffe.php` (PHP >= 5.4 with curl).
 - [Browser JavaScript](sdk/javascript/) — demo client for a web page, not a
   general-purpose SDK.
+- [Recipe scripts](example/recipes/) — runnable copies of every recipe script (Node.js and PHP).
 
 
 ## Authentication
@@ -123,6 +124,14 @@ The API uses standard HTTP status codes. What's verified today:
 
 - __200__ on every successful call — including a call for an id that doesn't exist,
   which comes back as 200 with `{}` rather than 404.
+- __201__ on `PATCH /api/baskets/` (`setBasketLine`), for every add, update or remove of
+  a basket line: `{"status":201,"message":"Basket update","data":{...,"id":<numeric
+  product id or null>}}`. A `201` doesn't guarantee the write persisted — check
+  `data.id` is not `null` and confirm with `GET /api/baskets/`; see
+  [docs/reference/baskets.md](docs/reference/baskets.md).
+- __400__ on an unsupported method/path under `/api/baskets/`, e.g. every observed
+  `POST /api/baskets/`: `{"error":"No such route","status":400}`. Use `PATCH`, not
+  `POST`.
 - __401__ on a malformed or invalid token: `{"status":401,"message":"Invalid
   JwtToken: UnauthorizedError","reason":"jwt malformed"}`. An expired token has not
   been observed.

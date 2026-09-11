@@ -6,7 +6,10 @@
     "lint:spec": "redocly lint openapi.yaml",
     "gen:reference": "node scripts/gen-reference.js",
     "gen:postman": "node scripts/gen-postman.js",
-    "test": "node --test scripts/gen-reference.test.js scripts/gen-postman.test.js"
+    "sync:recipes": "node scripts/sync-recipes.js",
+    "verify:examples": "bash scripts/verify-examples.sh",
+    "check": "npm run lint:spec && node scripts/gen-reference.js --check && node scripts/gen-postman.js --check && node scripts/sync-recipes.js --check && node scripts/check-docs.js",
+    "test": "node --test scripts/gen-reference.test.js scripts/gen-postman.test.js scripts/sync-recipes.test.js scripts/check-docs.test.js"
   },
   "devDependencies": {
     "@redocly/cli": "^1.25.0",

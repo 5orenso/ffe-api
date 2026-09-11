@@ -32,6 +32,8 @@ _None._
 
 ### Responses
 
+Response fields: see [DealerInfo](#fields-dealerinfo).
+
 **200** Dealer information. Example trimmed for readability (long lists
 cut, agent_dealers omitted); the schema is authoritative.
 
@@ -338,3 +340,43 @@ $ffe = new FFE('<your token>');
 $result = $ffe->dealerInfo();
 print_r($result);
 ```
+
+## Fields: DealerInfo
+
+Response envelope for GET /api/dealers/info. See the operation
+description on `/api/dealers/info` for verification notes.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| status | integer |  |
+| message | string |  |
+| data | object |  |
+| data.customerno | integer |  |
+| data.name | string |  |
+| data.country | string |  |
+| data.email | string |  |
+| data.store | object | The dealer's public storefront/contact details. |
+| data.deliveryaddress1 | string |  |
+| data.deliveryname | string |  |
+| data.deliverypostcode | string |  |
+| data.deliverypostoffice | string |  |
+| data.currency | string |  |
+| data.agent_dealers | array of object | Sub-dealer accounts visible to agent accounts. Structure intentionally not documented. |
+| data.emails | object | Keyed by the dealer's own login email address with "@" and "." replaced by "_" (9 keys observed on the probed account, including secondary/legacy addresses). Each entry is a per-login-email activity record: activity, forgotten (array), forgottens, last_activity, last_forgotten, last_login, login, login_failed, logins (array of Unix timestamps), logins_failed (array), newsletter, newsletter_subscribed, newsletter_subscribed_from, newsletter_subscribed_user_agent, visits, last_login_failed, current_login_failed, isOnline (boolean), api_activity, last_api_activity, isOnlineApi (boolean). |
+| data.isAdmin | boolean |  |
+| data.is_agent | integer | 0 or 1. 1 on the probed account, which is why `agent_dealers` is populated. |
+| data.isDealerAdmin | boolean |  |
+| data.hasAccessToCombos | integer |  |
+| data.acceptConsumerOrders | integer |  |
+| data.settings | object |  |
+| data.favorite | object |  |
+| data.brands | object | Keyed by brand slug (matching Brand.brandno, e.g. "simms"; 30 keys observed on the probed account). Each value is `{ "allowed": boolean }`, indicating whether this dealer is permitted to view/order that brand. |
+| data.backorders | object | Observed as an empty object ({}) on the probed account. |
+| data.backorderDeleteReq | object | Keyed by an internal backorder/request id. Each value is itself a map from article number to a Unix timestamp (seconds) of the delete request. Only one entry was present on the probed account. |
+| data.currentEmail | string |  |
+| data.inboxSignature | string |  |
+| data.shipping | object |  |
+| data.termsAndConditions | object | Keyed by a terms-and-conditions id ("1", "2" observed on the probed account). Each entry has `article` (the CMS article: id, title, an optional ingress, body, create_date, updated, tag, tags, status, version, images), `acceptedTerms` (the accepted text, verbatim) and `acceptedDate` (ISO 8601). |
+| data.csvDownloads | object | Keyed by brand slug (one empty-string key was also observed). Value is a running count of CSV price-list downloads for that brand from DealerWeb. |
+| data.csvAdminDownloads | object | Same shape as csvDownloads, for admin-initiated downloads. |
+| data.useragent | object | Client/browser-detection flags and metadata, apparently derived from the User-Agent header of the request that most recently updated this record. On the probed account (an API/server-to-server call routed through CloudFront) every boolean was false except isAuthoritative, and browser/version/os/platform were "unknown". |

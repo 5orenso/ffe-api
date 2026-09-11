@@ -8,7 +8,7 @@ request yet.
    PHP, in about 10 minutes.
 2. [Concepts](concepts.md) — the data model: variants, availability, images, prices,
    pagination, rate limiting.
-3. **Recipes** — complete, runnable scripts:
+3. **Recipes** — complete, runnable scripts (the files live in [example/recipes/](../example/recipes/)):
    - [Sync your catalog](recipes/sync-catalog.md) — pull your entire product catalog
      into one file.
    - [Keep content updated](recipes/keep-content-updated.md) — detect changed

@@ -66,6 +66,23 @@ success](./errors.md#errors-that-look-like-success).
 `search` (free text) on `GET /api/products/` to find the right value first, then fetch it
 by id. See [docs/reference/products.md](./reference/products.md) for both parameters.
 
+## I got 201 from the basket but nothing was added
+
+**Cause.** `PATCH /api/baskets/` (`setBasketLine`) returns HTTP 201 with a `data` object
+that *looks* successful even when the write didn't identify a product. The most common
+reason: the request body used `articleno` (or `productNo`) instead of the numeric product
+`id` — `articleno` is the SKU string documented on [products.md](./reference/products.md)
+(e.g. `"13960-096-10"`), but `PATCH /api/baskets/` only accepts the numeric `id` field
+(e.g. `613599`) from `GET /api/products/`. Sending the wrong field is silently accepted;
+nothing in the request is rejected, and the response's `data.id` is simply `null`.
+
+**Fix.** Send `{"id": <numeric product id>, "qty": <n>}`, not `{"articleno": ...}`. Get
+the numeric `id` from `products()`/`product()` (or your `catalog.json`'s
+`variants[].id` — see the [sync catalog recipe](./recipes/sync-catalog.md)), and always
+check `data.id` in the `PATCH` response (and confirm with `GET /api/baskets/`,
+`baskets()`) rather than trusting the `201` status code alone. See the [ordering with
+baskets recipe](./recipes/ordering-with-baskets.md) for the full verified flow.
+
 ## `unique=true` returns 504
 
 **Cause.** Every observed call to `GET /api/products/?unique=true` — alone, with `limit=1`,
@@ -120,10 +137,11 @@ this exception doesn't crash your script; the `catch` block is where you'll see 
 
 ## PHP: `No data from API`
 
-**Cause.** The PHP SDK throws `new Exception('No data from API')` for any HTTP status other
-than 200 and 401, and also when the underlying curl request fails outright (a network
-problem — no HTTP response was received at all). When curl reports its own error text, the
-PHP SDK appends it after a colon, e.g. `No data from API: Could not resolve host`.
+**Cause.** The PHP SDK throws `new Exception('No data from API')` for any HTTP status
+outside the 2xx range other than 401 (which gets the `Not authorized` message above), and
+also when the underlying curl request fails outright (a network problem — no HTTP
+response was received at all). When curl reports its own error text, the PHP SDK appends
+it after a colon, e.g. `No data from API: Could not resolve host`.
 
 **Fix.** Catch the `Exception` and read its message — it tells you whether this was a
 network problem or an unexpected status. Turn on the constructor's `debug` option

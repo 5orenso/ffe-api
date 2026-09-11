@@ -34,6 +34,8 @@ what this collection path actually implements: POST, GET, HEAD.
 
 ### Responses
 
+Response fields: see [PosProduct](#fields-posproduct).
+
 **200** Array of products
 
 **401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
@@ -171,6 +173,8 @@ it did not reproduce.
 | id | path | integer | yes | 23446 |  |
 
 ### Responses
+
+Response fields: see [PosProduct](#fields-posproduct).
 
 **200** The product
 
@@ -325,3 +329,46 @@ ffe.posEditProduct({ ... }, { id: 123 })
 ```php
 // No PHP SDK method for this endpoint; use curl against https://dealer.flyfisheurope.com/api/pos/products/23446.
 ```
+
+## Fields: PosProduct
+
+Verified live from GET /api/pos/products/ (17 records for the test
+account) and GET /api/pos/products/?limit=2 (same shape, truncated),
+plus the products embedded in GET /api/pos/sales/ sale records.
+Properties are exactly the fields observed; several are nullable or
+optional because the live data was inconsistent across records -
+see each property's description. brand is free text as entered at
+the point of sale, not the normalised brand slug used elsewhere in
+this API - observed casing/spelling varied: "scott", "simms",
+"Simms", "SIMMS FISHING PRODUCTS", "smith creek", "rodmount",
+"Guideline". Used both as the response shape for
+listPosProducts/getPosProduct and, per the Node SDK's
+posAddProduct/posEditProduct usage, as the request body shape for
+the unverified addPosProduct/updatePosProduct operations - see
+those operations' descriptions.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Point-of-sale product id (distinct from the catalog articleno). |
+| dealer | integer | Your dealer/account id. |
+| articleno | string |  |
+| tradeItemNumber | string | GTIN/EAN barcode. |
+| brand | string |  |
+| name | string |  |
+| inStock | integer | Observed only as negative integers (-1 to -7) across the 17 probed records; the meaning is not documented by Flyfish Europe - do not assume this is a literal stock count. |
+| retailPrice | number |  |
+| retailCurrency | string |  |
+| tax | integer | Tax rate in percent. |
+| costPrice | number, nullable | Absent on 3 of the 17 probed records. |
+| category | string, nullable | Null on 1 of the 17 probed records. |
+| images | object, nullable | Absent on 1 and null on 2 of the 17 probed records (3 non-object cases in total). Unlike this API's shared Images schema, only small/medium/large were observed here - no xlarge, xxlarge or list. |
+| images.small | string |  |
+| images.medium | string |  |
+| images.large | string |  |
+| uploadedFiles | array of object | Observed as an empty array ([]) on every probed record; item shape not verified. |
+| color | string, nullable |  |
+| size | string, nullable |  |
+| itemCategory | string, nullable | Null on 1 of the 17 probed records. |
+| mainCategory | string, nullable | Null on 5 of the 17 probed records. |
+| intermediateCategory | string, nullable |  |
+| favorite | boolean |  |

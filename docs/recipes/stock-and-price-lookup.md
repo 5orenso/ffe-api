@@ -245,8 +245,10 @@ not as a file to blindly copy over your catalog.
 
 ### Node.js script
 
-Save this as `refresh-stock.js`, next to `catalog.json`.
+Save this as `refresh-stock.js`, next to `catalog.json`. The same file is in this
+repository at [example/recipes/node/refresh-stock.js](../../example/recipes/node/refresh-stock.js).
 
+<!-- recipe: example/recipes/node/refresh-stock.js -->
 ```js
 'use strict';
 // Compare catalog.json's availability against the live API and record what changed.

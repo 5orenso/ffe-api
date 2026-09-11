@@ -1,0 +1,8 @@
+{
+  "name": "ffe-api-recipes",
+  "private": true,
+  "description": "Runnable copies of the recipe scripts in docs/recipes/. npm install links the SDK from ../../sdk/node.js.",
+  "dependencies": {
+    "@flyfisheurope/ffe-api-sdk": "file:../../sdk/node.js"
+  }
+}

@@ -31,6 +31,8 @@ requested explicitly.
 
 ### Responses
 
+Response fields: see [Category](#fields-category).
+
 **200** Array of categories
 
 ```json
@@ -154,6 +156,8 @@ Get one category
 
 ### Responses
 
+Response fields: see [Category](#fields-category).
+
 **200** The category. An unknown categoryno also returns HTTP 200 (not 404), but with
 an empty object body — see the unknownCategoryno example. Note the by-id
 response has no `brand` field, unlike list responses.
@@ -241,3 +245,51 @@ $ffe = new FFE('<your token>');
 $result = $ffe->category(101);
 print_r($result);
 ```
+
+## Fields: Category
+
+| Field | Type | Description |
+|-------|------|-------------|
+| categoryno | integer |  |
+| id | integer |  |
+| groupno | integer | Always equal to categoryno in observed data. |
+| name | string |  |
+| level | string (main \| intermediate \| sub) |  |
+| parent | integer, nullable | categoryno of the parent category; null for level main. |
+| sort | integer |  |
+| status | integer |  |
+| showOnConsumerWeb | integer |  |
+| preSale | integer |  |
+| hasNewProducts | integer |  |
+| hasPresaleProducts | integer |  |
+| products | array of object |  |
+| products[].id | integer |  |
+| products[].name | string |  |
+| products[].articleno | string |  |
+| articles | array of object |  |
+| articles[].id | integer |  |
+| articles[].text | string |  |
+| articles[].title | string |  |
+| articlesTech | array of object |  |
+| articlesTech[].id | integer |  |
+| articlesTech[].text | string |  |
+| articlesTech[].title | string |  |
+| categories | array of object |  |
+| categories[].id | integer |  |
+| categories[].text | string |  |
+| categories[].name | string |  |
+| offline | integer |  |
+| count | integer |  |
+| countPresale | integer |  |
+| countNew | integer |  |
+| countPsNew | integer |  |
+| countSpring | integer |  |
+| countFall | integer |  |
+| countPsSpring | integer |  |
+| countPsFall | integer |  |
+| countNewSpring | integer |  |
+| countNewFall | integer |  |
+| countPsNewSpring | integer |  |
+| countPsNewFall | integer |  |
+| brand | string | Present on list responses; absent when fetching a single category by categoryno. |
+| linkname | string |  |

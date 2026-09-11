@@ -173,3 +173,23 @@ test('baskets({}) and baskets({ presale: 0 }) build the expected query string', 
 test('https is only swapped to http when the option is strictly false, not merely falsy', () => {
     assert.equal(new FFE('t', { https: 0 }).https, https);
 });
+
+test('setBasketLine() sends PATCH /api/baskets/ with a JSON {id, qty} body', async () => {
+    reply.body = { status: 201, message: 'Basket update', data: { qty: 1, price: null, retailPrice: null, id: 613599, addedFrom: 'api', addedBy: 'me@example.com' } };
+    const result = await client().setBasketLine({ id: 613599, qty: 1 });
+    assert.equal(last.method, 'PATCH');
+    assert.equal(last.url, '/api/baskets/');
+    assert.equal(last.headers['content-type'], 'application/json');
+    assert.equal(last.body, JSON.stringify({ id: 613599, qty: 1 }));
+    assert.deepEqual(result, reply.body);
+});
+
+test('setBasketLine() throws TypeError when id is not the numeric product id', () => {
+    assert.throws(() => client().setBasketLine({ id: '13960-096-10', qty: 1 }), TypeError);
+});
+
+test('setBasketLine() throws TypeError when qty is not a non-negative integer', () => {
+    assert.throws(() => client().setBasketLine({ id: 613599, qty: -1 }), TypeError);
+    assert.throws(() => client().setBasketLine({ id: 613599, qty: 1.5 }), TypeError);
+    assert.throws(() => client().setBasketLine({ id: 613599 }), TypeError);
+});

@@ -9,7 +9,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 const HEADER = '<!-- Generated from openapi.yaml by scripts/gen-reference.js. Do not edit. -->';
-const METHOD_ORDER = ['get', 'post', 'put', 'delete', 'options'];
+const METHOD_ORDER = ['get', 'post', 'put', 'patch', 'delete', 'options'];
 
 function resolveRef(spec, obj) {
     if (obj && typeof obj.$ref === 'string') {
@@ -48,6 +48,87 @@ function paramTable(params, spec) {
 
 function jsonBlock(value) {
     return '```json\n' + JSON.stringify(value, null, 2) + '\n```\n';
+}
+
+function refName(obj) {
+    return obj && typeof obj.$ref === 'string' ? obj.$ref.split('/').pop() : null;
+}
+
+// If schema has allOf, merge every member's resolved properties (in order,
+// recursing through any nested allOf) into one object schema; otherwise
+// return schema unchanged.
+function flattenAllOf(schema, spec) {
+    if (!schema || !schema.allOf) return schema;
+    const properties = {};
+    let memberDescription;
+    for (const raw of schema.allOf) {
+        const member = flattenAllOf(resolveRef(spec, raw), spec) || {};
+        if (member.properties) Object.assign(properties, member.properties);
+        if (!memberDescription && member.description) memberDescription = member.description;
+    }
+    return { type: 'object', properties, description: schema.description || memberDescription };
+}
+
+function cell(text) {
+    return String(text || '').replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|').trim();
+}
+
+function typeLabel(raw, spec) {
+    const prop = flattenAllOf(resolveRef(spec, raw), spec) || {};
+    let type;
+    const union = prop.oneOf || prop.anyOf;
+    if (refName(raw)) {
+        type = refName(raw);
+    } else if (Array.isArray(union)) {
+        type = union.map((m) => typeLabel(m, spec)).join(' \\| ');
+    } else if (prop.type === 'array') {
+        const items = prop.items || {};
+        type = 'array of ' + (refName(items) || items.type || 'object');
+    } else {
+        type = prop.type || 'object';
+    }
+    if (prop.enum) type += ` (${prop.enum.join(' \\| ')})`;
+    if (prop.nullable) type += ', nullable';
+    return type;
+}
+
+// One row per property; one level of nesting below the top level.
+function fieldRows(schema, spec, prefix) {
+    const rows = [];
+    for (const [name, raw] of Object.entries(schema.properties || {})) {
+        const prop = flattenAllOf(resolveRef(spec, raw), spec) || {};
+        rows.push(`| ${prefix}${name} | ${typeLabel(raw, spec)} | ${cell(prop.description)} |`);
+        if (prefix) continue;
+        if (prop.type === 'array') {
+            const items = flattenAllOf(resolveRef(spec, prop.items), spec) || {};
+            if (items.properties) rows.push(...fieldRows(items, spec, `${name}[].`));
+        } else if (prop.properties) {
+            rows.push(...fieldRows(prop, spec, `${name}.`));
+        }
+    }
+    return rows;
+}
+
+function fieldsSection(name, spec) {
+    const schema = spec.components.schemas[name];
+    const lines = [`## Fields: ${name}\n`];
+    if (schema.description) lines.push(schema.description.trim() + '\n');
+    lines.push('| Field | Type | Description |', '|-------|------|-------------|', ...fieldRows(schema, spec, ''), '');
+    return lines.join('\n');
+}
+
+// Schema name of the first 2xx JSON response (array items unwrapped), or null.
+function responseSchemaName(op, spec) {
+    for (const [code, raw] of Object.entries(op.responses || {})) {
+        if (!/^2/.test(code)) continue;
+        const res = resolveRef(spec, raw);
+        const json = res && res.content && res.content['application/json'];
+        let schema = json && json.schema;
+        if (!schema) continue;
+        if (schema.type === 'array' && schema.items) schema = schema.items;
+        if (refName(schema)) return refName(schema);
+    }
+    return null;
 }
 
 function responses(op, spec) {
@@ -146,6 +227,8 @@ function operationSection(method, urlPath, op, spec) {
     const body = requestBody(op, spec);
     if (body) parts.push(body);
     parts.push('### Responses\n');
+    const schemaName = responseSchemaName(op, spec);
+    if (schemaName) parts.push(`Response fields: see [${schemaName}](#fields-${schemaName.toLowerCase()}).\n`);
     parts.push(responses(op, spec));
     parts.push(sampleCalls(op, method, urlPath, spec));
     return parts.join('\n');
@@ -173,25 +256,54 @@ function render(spec) {
         for (const { method, urlPath, op } of ops) {
             lines.push(operationSection(method, urlPath, op, spec));
         }
+        const schemaNames = [];
+        for (const { op } of ops) {
+            const name = responseSchemaName(op, spec);
+            if (name && !schemaNames.includes(name)) schemaNames.push(name);
+        }
+        for (const name of schemaNames) lines.push(fieldsSection(name, spec));
         out[`${tag}.md`] = lines.join('\n');
     }
     return out;
+}
+
+// Names in `rendered` whose file in `dir` differs, plus .md files in `dir`
+// that `rendered` does not produce.
+function staleFiles(dir, rendered) {
+    const stale = [];
+    for (const [name, content] of Object.entries(rendered)) {
+        const file = path.join(dir, name);
+        if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== content) stale.push(name);
+    }
+    for (const name of fs.existsSync(dir) ? fs.readdirSync(dir) : []) {
+        if (name.endsWith('.md') && !(name in rendered)) stale.push(name);
+    }
+    return stale.sort();
 }
 
 function main() {
     const root = path.join(__dirname, '..');
     const spec = yaml.load(fs.readFileSync(path.join(root, 'openapi.yaml'), 'utf8'));
     const dir = path.join(root, 'docs', 'reference');
+    const files = render(spec);
+    if (process.argv.includes('--check')) {
+        const stale = staleFiles(dir, files);
+        if (stale.length > 0) {
+            for (const name of stale) console.error(`docs/reference/${name} is out of date (run npm run gen:reference)`);
+            process.exit(1);
+        }
+        console.log('docs/reference is up to date');
+        return;
+    }
     fs.mkdirSync(dir, { recursive: true });
     for (const f of fs.readdirSync(dir)) {
         if (f.endsWith('.md')) fs.unlinkSync(path.join(dir, f));
     }
-    const files = render(spec);
     for (const [name, content] of Object.entries(files)) {
         fs.writeFileSync(path.join(dir, name), content);
         console.log(`wrote docs/reference/${name}`);
     }
 }
 
-module.exports = { render };
+module.exports = { render, staleFiles };
 if (require.main === module) main();

@@ -41,6 +41,8 @@ brand: 22 different brandno values were observed across a single
 
 ### Responses
 
+Response fields: see [Product](#fields-product).
+
 **200** Array of product variants (not grouped into product families -
 see the unique parameter). Example trimmed for readability (long
 text fields shortened, large maps/lists cut); the schema is
@@ -208,6 +210,8 @@ Get one product variant by articleno
 | articleno | path | string | yes | 1113000 |  |
 
 ### Responses
+
+Response fields: see [Product](#fields-product).
 
 **200** The product variant. An unknown articleno also returns HTTP 200
 (not 404), but with an empty object body - see the
@@ -450,3 +454,171 @@ $ffe = new FFE('<your token>');
 $result = $ffe->product('1113000');
 print_r($result);
 ```
+
+## Fields: Product
+
+One product variant (a single articleno / colour / size combination),
+as returned by GET /api/products/ and GET /api/products/{articleno}.
+Field list is the observed union across every scripts/probes/prod-*.json
+body, deduplicated by articleno (3024 distinct products; 4306 raw,
+pre-dedup occurrences). Not every field is present on every item -
+every percentage below was computed by a script over that
+deduplicated corpus (a field counts as present for an articleno if
+ANY probed occurrence of that articleno had it), not eyeballed. The
+sizes, colors and imgRef fields are documented from the pre-existing
+spec draft and from apiLinkToProductGroup's own use of unique=true,
+but could NOT be verified live: every unique=true probe returned
+HTTP 504.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer |  |
+| articleno | string |  |
+| tradeItemNumber | string | GTIN / barcode. Matches the gtin query parameter. |
+| name | string |  |
+| nameDisplay | string | Marketing name shared by all colour/size variants of a product family. Matches the nameDisplay query parameter. |
+| productGroup | string |  |
+| brand | string | Lowercase brand slug, e.g. "simms". |
+| brandno | string | Brand identifier as seen elsewhere in the catalog, e.g. "Simms", "C&F", "Loon". Casing is inconsistent with Brand.brandno (which is lowercase); matching against the brand query parameter is case-insensitive. |
+| vismaBrand | string | Brand name as stored in the upstream Visma ERP, e.g. "C&F Design". |
+| itemCategory | string | Short internal category code/name. Often distinct from mainCategory (e.g. itemCategory "HEAD" alongside mainCategory "Headwear"), but not always: 522 of 4306 raw (non-deduplicated) occurrences had itemCategory equal to mainCategory (e.g. articleno F0281: itemCategory "Floatants", mainCategory "Floatants"). |
+| mainCategory | string | Same value as maingroupname. |
+| intermediateCategory | string | Same value as intermediategroupname. Present on 87.1% of probed products (2634/3024) - in every case but one, exactly when intermediategroupno is non-zero (see intermediategroupno). |
+| subCategory | string | Same value as subgroupname. Present on 55.5% of probed products (1677/3024), exactly when subgroupno is non-zero (0 exceptions observed - see subgroupno). |
+| maingroupno | integer | Matches the mainCat query parameter. |
+| maingroupname | string |  |
+| maingroupid | integer |  |
+| maingroupsort | integer, nullable |  |
+| intermediategroupno | integer | Matches the intCat query parameter. 0 when the product has no intermediate group, with one observed exception: articleno 12023-016-07 had intermediategroupno: 0 but a fully-populated intermediategroupname/intermediategroupid/intermediategroupsort/ intermediateCategory anyway. |
+| intermediategroupname | string | Present on 87.1% of probed products (2634/3024) - in every case but one, exactly when intermediategroupno is non-zero (see intermediategroupno). |
+| intermediategroupid | integer | Present on 87.1% of probed products (2634/3024); same conditions as intermediategroupname. |
+| intermediategroupsort | integer, nullable | Present on 86.9% of probed products (2629/3024). Never present when intermediategroupno is 0, but not quite universal when it isn't either: of the 3417 raw (non-deduplicated) occurrences with a non-zero intermediategroupno, 5 were missing this field. |
+| subgroupno | integer | Matches the subCat query parameter. 0 when the product has no sub group. |
+| subgroupname | string | Present on 55.5% of probed products (1677/3024), exactly when subgroupno is non-zero (0 exceptions observed). |
+| subgroupid | integer | Present on 55.5% of probed products (1677/3024); same conditions as subgroupname. |
+| subgroupsort | integer, nullable | Present on 47.4% of probed products (1434/3024). Never present when subgroupno is 0, but far from universal when it isn't: of the 2004 raw (non-deduplicated) occurrences with a non-zero subgroupno, 243 (12%) were missing this field. |
+| sort | integer, nullable | Present on 44.6% of probed products (1348/3024). |
+| color | string |  |
+| colorId | integer |  |
+| size | string \| boolean | The variant's size label, or false (observed on 12.3% of probed products, 373/3024, and always false when boolean - never true) when the product has no size dimension. |
+| sizeId | integer |  |
+| option_1 | string | Free-form variant option (e.g. frame colour on sunglasses); empty string when unused. Not always paired with option_1_name: 95 raw occurrences had an empty option_1 with a non-empty option_1_name (e.g. articleno 13785-001-00: option_1: "", option_1_name: "color"). |
+| option_1_name | string | Label for option_1, e.g. "frame color"; empty string when unused (see option_1 for observed pairing exceptions). |
+| option_2 | string | Free-form variant option (e.g. lens colour on sunglasses); empty string when unused. Not always paired with option_2_name: 130 raw occurrences had a non-empty option_2 with an empty option_2_name (e.g. articleno C1195-10: option_2: "Black Nickel", option_2_name: ""). |
+| option_2_name | string | Label for option_2, e.g. "lens color"; empty string when unused (see option_2 for observed pairing exceptions). |
+| description | string | Present on 97.4% of probed products (2944/3024). |
+| descriptionHtml | string | HTML version of description. Rare - present on only 1 of 3024 distinct products probed. |
+| features | string | Bullet list as plain text. Present on 59.4% of probed products (1795/3024). |
+| care | string | Care instructions as plain text. Present on 32.9% of probed products (996/3024). |
+| tech | string | Free-form markdown, sometimes just an embedded image reference. Present on 27.6% of probed products (834/3024). |
+| howtouse | string | Present on 8.0% of probed products (241/3024). |
+| introYear | string | e.g. "S26" or "S22-S26" (a range), not always a plain year. |
+| isActive | integer |  |
+| is_new | integer | 0 or 1. Matches the isNew query parameter. |
+| isMoving | boolean | Present on 32.7% of probed products (989/3024). |
+| showonwebyesno | integer |  |
+| showOnConsumerWeb | integer |  |
+| preSale | integer |  |
+| preSaleNew | integer |  |
+| preSalePopular | integer |  |
+| preSaleDiscontinued | integer |  |
+| status | integer | Present on 15.4% of probed products (467/3024). |
+| offline | integer | Present on 15.4% of probed products (467/3024). |
+| availability | string \| number | Present on all 3024 distinct products probed (100%). Observed patterns: "Yes" = in stock; "No" = out of stock; a date string in D.M.YY / DD.MM.YY form (e.g. "02.01.27", "04.06.26", "15.12.26", "22.12.25", "01.01.40") = expected restock date; "20+" = in stock, at least 20 units; a plain number (1-19 observed) = in stock with that exact quantity. Note the date format is day.month.year, not ISO YYYY-MM-DD. |
+| unitsInStock | integer |  |
+| unitsInStockHasMore | boolean | Present on all 3024 distinct products probed (100%) by at least one occurrence. However, on the one single-item GET /api/products/{articleno} response probed (articleno 1113000), this field was absent from that specific response even though 9 other, list-endpoint occurrences of the same articleno all included it - the two endpoints may not return exactly the same field set. |
+| weight | number |  |
+| packingWeight | number |  |
+| volume | number |  |
+| length | number |  |
+| width | number |  |
+| height | number |  |
+| countryOfOrigin | string | Numeric country code as a string, e.g. "392". |
+| countryCode | string \| boolean | false on 84.6% of probed products (2557/3024); a 2-letter, uppercase ISO-3166-1-alpha-2-style country code string on the other 15.4% (467/3024). Observed string values: CN, JP, NZ, SV, TW, US, VN, ZA. Always paired with a matching country value (see below) - never a string on one and boolean on the other for the same product. |
+| country | string \| boolean | false on 84.6% of probed products (2557/3024); an uppercase country name string on the other 15.4% (467/3024), paired 1:1 with countryCode. Observed string values: CHINA, EL SALVADOR, JAPAN, NEW ZEALAND, "SØR-AFRIKA" (Norwegian for South Africa, paired with countryCode ZA), TAIWAN, USA, VIETNAM. |
+| commodityCode | string |  |
+| retailCurrency | string |  |
+| retailPrice | number | Present on ~99.9% of probed items. |
+| psRetailCurrency | string | Pre-sale retail currency. |
+| psRetailPrice | number | Pre-sale retail price. Present on ~99.9% of probed items. |
+| priceNOK | number | Present on ~99.9% of probed items. |
+| priceSEK | number | Present on ~99.9% of probed items. |
+| priceDKK | number | Present on ~99.9% of probed items. |
+| priceGBP | number | Present on ~99.9% of probed items. |
+| priceEUR | number | Present on ~99.9% of probed items. |
+| priceCHF | number | Present on ~99.9% of probed items. |
+| psPriceNOK | number | Pre-sale price. Present on ~99.9% of probed items. |
+| psPriceSEK | number | Pre-sale price. Present on ~99.9% of probed items. |
+| psPriceDKK | number | Pre-sale price. Present on ~99.9% of probed items. |
+| psPriceGBP | number | Pre-sale price. Present on ~99.9% of probed items. |
+| psPriceEUR | number | Pre-sale price. Present on ~99.9% of probed items. |
+| psPriceCHF | number | Pre-sale price. Present on ~99.9% of probed items. |
+| dealerCurrency | string |  |
+| dealerPrice | number | Dealer (wholesale) price. |
+| dealerEurPrice | number |  |
+| dealerRepairPrice | number |  |
+| dealerPresaleCurrency | string \| boolean | Usually a currency code; observed as false (no presale currency set) on a small number of items. |
+| dealerPresalePrice | number |  |
+| dealerAsapCurrency | string | Present on 99.7% of probed products (3015/3024). |
+| dealerAsapPrice | number | Present on 99.7% of probed products (3015/3024). |
+| dealerPriceFull | number | Present on 2.0% of probed products (59/3024). |
+| discountPercent | number | Present on 2.0% of probed products (59/3024). |
+| pricelist | object | Internal price-list map, keyed by price-list number (e.g. "5", "44"). Entry shape varies - all 3 shapes were observed across the probed corpus: the full shape (prislistenr, artikkelnr, pris as a string e.g. "98.4", valutakode, startdato, sluttdato, hash), a partial shape with only prislistenr/pris/valutakode, or an empty object for a price list with no entry for this article. |
+| pricelistAsap | object | Same key structure as pricelist. Every entry observed here was in the full shape (prislistenr, artikkelnr, pris, valutakode, startdato, sluttdato, hash) - the partial and empty shapes seen on pricelist were not observed here, though a larger sample might still show them. |
+| pricelistPresale | object | Same key structure as pricelist. Entry shape varies: most entries carry only pris (a number here, not a string) and valutakode, but the full pricelist shape (prislistenr, artikkelnr, pris, valutakode, startdato, sluttdato, hash) was also observed here (e.g. articleno 12023-016-07's price-list 5 and 44 entries), as was an empty object. |
+| pricelistPresaleAsap | object | Same key structure as pricelistPresale. Every entry observed here was either the pris+valutakode shape or an empty object - the full pricelist shape seen on pricelistPresale was not observed here. |
+| pricelistCombo | object | Rare (present on 1.4% of probed products, 43/3024): a flat object mirroring priceNOK/priceSEK/priceDKK/priceGBP/priceEUR/ priceCHF, seen on combo/bundle articles. |
+| images | Images | Present on all 3024 distinct products probed (100%) - every raw, non-deduplicated occurrence across all 42 probe files had this field. |
+| images.small | string | 80x80 thumbnail URL. |
+| images.medium | string | 400px-wide URL. |
+| images.large | string | 800px-wide URL. |
+| images.xlarge | string | 1024px-wide URL. |
+| images.xxlarge | string | 1280px-wide URL. |
+| images.list | array of object | Additional images beyond the primary one, each with the same 5 sizes. |
+| imgs | object | Raw upload metadata for each image, keyed by a small integer id. Each entry has name, encoding, mimetype, ext, newFilename, s3Link, s3ThumbLink, bytes and sort. images is the derived, ready-to-use form of this data. Present on 95.7% of probed products (2894/3024) - note this is notably less than images (100%, see below), i.e. some products have images without raw imgs metadata. |
+| files | object | Same shape as imgs, but for non-image attachments (video files were the only kind observed). Rare - present on 0.8% of probed products (24/3024). |
+| imageRefPrefixes | object | URL prefix for each image size, without the filename. |
+| imageRefPrefixes.small | string |  |
+| imageRefPrefixes.medium | string |  |
+| imageRefPrefixes.large | string |  |
+| imageRefPrefixes.xlarge | string |  |
+| imageRefPrefixes.xxlarge | string |  |
+| youtubeNOK | string |  |
+| youtubeSEK | string |  |
+| youtubeDKK | string |  |
+| youtubeGBP | string |  |
+| youtubeEUR | string |  |
+| youtubeCHF | string |  |
+| youtube2NOK | string |  |
+| youtube2SEK | string |  |
+| youtube2DKK | string |  |
+| youtube2GBP | string |  |
+| youtube2EUR | string |  |
+| youtube2CHF | string |  |
+| youtube3NOK | string |  |
+| youtube3SEK | string |  |
+| youtube3DKK | string |  |
+| youtube3GBP | string |  |
+| youtube3EUR | string |  |
+| youtube3CHF | string |  |
+| link | string | DealerWeb product page URL. |
+| linkConsumerWeb | string | Public flyfisheurope.com product page URL. |
+| apiLinkToProductGroup | string | Self-referential /api/products/?nameDisplay=...&unique=true URL for this product's family. |
+| apiLinkToProductMainCategory | string | Self-referential /api/products/?mainCat=...&unique=true URL for this product's main category. |
+| related | object | Cross-references; empty object/empty arrays on most items, but all 3 sub-fields have real, non-empty data on a minority of products: articles on 6.5% (196/3024, e.g. a wader size-chart article), products on 1.4% (42/3024) and categories on 0.2% (7/3024). |
+| related.articles | array of object | e.g. {"id": 3531, "title": "Simms G4Z_2024 Size Chart"} or {"id": 2963, "text": "2963: Simms Women's G3 Wader Size Chart", "title": "..."}. |
+| related.products | array of object | e.g. {"id": 619648, "name": "Magnitude Infinity Buckskin/10' Clear Tip WF-3", "articleno": "145213"}. |
+| related.categories | array of object | e.g. {"id": 7362, "text": "365: SA Accessories", "name": "SA Accessories"}. |
+| articlesTech | array of object | Rare - present on only 1 of 3024 distinct products probed. |
+| articlesTech[].id | integer |  |
+| articlesTech[].text | string |  |
+| articlesTech[].title | string |  |
+| supplierOrderLines | array of array | Incoming purchase-order lines. Non-empty on 13.9% of probed products (419/3024); an empty array otherwise. Every non-empty entry observed was a 2-element [date string, integer] tuple, and the integer was always positive across every occurrence in the probed corpus (424 distinct entries; range 1-804, e.g. ["2027-01-02", 12]) - no negative or zero quantity was ever seen. |
+| customerOrderLines | array of array | Outstanding customer-order lines. Non-empty on 13.6% of probed products (411/3024); an empty array otherwise. Same tuple shape as supplierOrderLines, but the integer was always negative across every occurrence in the probed corpus (513 distinct entries; range -50 to -1, e.g. ["2026-09-09", -1]) - no positive or zero quantity was ever seen. |
+| warehouse | string |  |
+| updatedFields | object | Internal change-tracking metadata: maps field names (including dotted paths like "pricelistPresale.5.pris") to a Unix timestamp of the last update. Not documented in detail; treat as opaque. |
+| updatedLastValue | object | Internal change-tracking metadata: maps the same field names from updatedFields to their previous value. Not documented in detail; treat as opaque. |
+| updatedDate | string |  |
+| sizes | array of string | Documented as present only with unique=true. NOT verified live (see the unique parameter on listProducts). |
+| colors | array of string | Documented as present only with unique=true. NOT verified live (see the unique parameter on listProducts). |
+| imgRef | object | Documented as present only with unique=true, mapping colour name to an image reference id. NOT verified live (see the unique parameter on listProducts). |

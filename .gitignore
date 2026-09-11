@@ -11,3 +11,8 @@ demo/*
 node_modules/
 scripts/probes/
 package-lock.json
+.superpowers/
+catalog.json
+catalog.csv
+content-updates.json
+stock-updates.json

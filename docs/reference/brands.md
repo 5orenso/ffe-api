@@ -23,6 +23,8 @@ _None._
 
 ### Responses
 
+Response fields: see [Brand](#fields-brand).
+
 **200** Array of brands
 
 ```json
@@ -133,6 +135,8 @@ Get one brand
 
 ### Responses
 
+Response fields: see [Brand](#fields-brand).
+
 **200** The brand. An unknown brandno also returns HTTP 200 (not 404), but with
 an empty object body — see the unknownBrandno example.
 
@@ -207,3 +211,28 @@ $ffe = new FFE('<your token>');
 $result = $ffe->brand('simms');
 print_r($result);
 ```
+
+## Fields: Brand
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer |  |
+| brandno | string | Brand identifier used in the brand query parameter elsewhere |
+| sort | integer |  |
+| name | string |  |
+| fullName | string |  |
+| count | integer |  |
+| countPresale | integer |  |
+| updatedDate | string |  |
+| showOnConsumerWeb | integer |  |
+| showOnDealerWeb | integer |  |
+| countNew | integer |  |
+| countPsNew | integer |  |
+| countSpring | integer |  |
+| countFall | integer |  |
+| countPsSpring | integer |  |
+| countPsFall | integer |  |
+| countNewSpring | integer |  |
+| countNewFall | integer |  |
+| countPsNewSpring | integer |  |
+| countPsNewFall | integer |  |

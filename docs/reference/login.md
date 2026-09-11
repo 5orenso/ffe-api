@@ -41,6 +41,8 @@ Content types: `application/json`, `application/x-www-form-urlencoded`
 
 ### Responses
 
+Response fields: see [LoginResponse](#fields-loginresponse).
+
 **200** Login succeeded
 
 ```json
@@ -87,3 +89,11 @@ $ffe = new FFE('<your token>');
 $result = $ffe->login('you@example.com', 'password');
 print_r($result);
 ```
+
+## Fields: LoginResponse
+
+| Field | Type | Description |
+|-------|------|-------------|
+| status | integer |  |
+| apiToken | string |  |
+| message | string |  |

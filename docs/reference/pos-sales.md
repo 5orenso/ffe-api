@@ -33,6 +33,8 @@ what this collection path actually implements: POST, GET, HEAD.
 
 ### Responses
 
+Response fields: see [PosSale](#fields-possale).
+
 **200** Array of sales
 
 **401** Malformed or invalid token. A request with no Authorization header returns 403 instead (see Forbidden).
@@ -166,6 +168,8 @@ both times returning `{}` - see the unknownId example.
 
 ### Responses
 
+Response fields: see [PosSale](#fields-possale).
+
 **200** The sale
 
 **Known id**
@@ -275,3 +279,70 @@ ffe.posSales({}, { id: 123 })
 ```php
 // No PHP SDK method for this endpoint; use curl against https://dealer.flyfisheurope.com/api/pos/sales/158.
 ```
+
+## Fields: PosSale
+
+Verified live from GET /api/pos/sales/ (15 records for the test
+account) and GET /api/pos/sales/?limit=2 (same shape, truncated).
+Properties are exactly the fields observed on every one of the 15
+records; none were missing across the set. Used both as the
+response shape for listPosSales/getPosSale and, per the Node SDK's
+posAddSale/posSales(add) usage, as the request body shape for the
+unverified addPosSale operation - see that operation's description.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer |  |
+| dealer | integer | Your dealer/account id. |
+| products | array of object | Line items included in the sale. Each item has the same shape as PosProduct, plus up to four sale-line-specific fields (qty, return, discount, comment) that were present on only 1 of the 44 line items observed across the 15 probed sales - see each property's description below. |
+| products[].id | integer | Point-of-sale product id (distinct from the catalog articleno). |
+| products[].dealer | integer | Your dealer/account id. |
+| products[].articleno | string |  |
+| products[].tradeItemNumber | string | GTIN/EAN barcode. |
+| products[].brand | string |  |
+| products[].name | string |  |
+| products[].inStock | integer | Observed only as negative integers (-1 to -7) across the 17 probed records; the meaning is not documented by Flyfish Europe - do not assume this is a literal stock count. |
+| products[].retailPrice | number |  |
+| products[].retailCurrency | string |  |
+| products[].tax | integer | Tax rate in percent. |
+| products[].costPrice | number, nullable | Absent on 3 of the 17 probed records. |
+| products[].category | string, nullable | Null on 1 of the 17 probed records. |
+| products[].images | object, nullable | Absent on 1 and null on 2 of the 17 probed records (3 non-object cases in total). Unlike this API's shared Images schema, only small/medium/large were observed here - no xlarge, xxlarge or list. |
+| products[].uploadedFiles | array of object | Observed as an empty array ([]) on every probed record; item shape not verified. |
+| products[].color | string, nullable |  |
+| products[].size | string, nullable |  |
+| products[].itemCategory | string, nullable | Null on 1 of the 17 probed records. |
+| products[].mainCategory | string, nullable | Null on 5 of the 17 probed records. |
+| products[].intermediateCategory | string, nullable |  |
+| products[].favorite | boolean |  |
+| products[].qty | string | Observed once, as the string "2". Not present on the other 43 observed line items (each of those represented a quantity of 1 as its own array entry instead). |
+| products[].return | boolean | Observed once, as false. Not present on the other 43 observed line items. |
+| products[].discount | string | Observed once, as an empty string (""). Not present on the other 43 observed line items. |
+| products[].comment | string | Observed once, as an empty string (""). Not present on the other 43 observed line items. |
+| totals | object | Per-sale totals, distinct from the top-level total/tax/currency/discount* fields below. |
+| totals.subTotal | number |  |
+| totals.total | number |  |
+| totals.qty | number |  |
+| totals.discountAmount | number |  |
+| totals.discount | number |  |
+| totals.tax | number |  |
+| totals.currency | string |  |
+| totals.totalPaid | number |  |
+| total | number |  |
+| tax | number |  |
+| currency | string |  |
+| discountAmount | number |  |
+| discount | number |  |
+| email | string, nullable | Observed as null on all 15 probed records. |
+| fname | string, nullable | Observed as null on all 15 probed records. |
+| lname | string, nullable | Observed as null on all 15 probed records. |
+| cellphone | string, nullable | Observed as null on all 15 probed records. |
+| note | string, nullable | Observed as null on all 15 probed records. |
+| paymentMethod | string | Observed values: cash, card. |
+| paymentMethods | array of object |  |
+| paymentMethods[].paymentMethod | string |  |
+| paymentMethods[].total | number |  |
+| created | string |  |
+| updated | string |  |
+| createdDate | string |  |
+| updatedDate | string |  |

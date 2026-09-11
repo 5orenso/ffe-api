@@ -41,12 +41,13 @@ per article. See [Concepts: Rate limiting](./concepts.md#rate-limiting) and the
 
 ## Can I place orders through the API?
 
-Reading your basket (`GET /api/baskets/`) is verified and documented — see
-[docs/reference/baskets.md](./reference/baskets.md). Adding lines to a basket or placing an
-order through the API is not yet documented or verified against the live API. Place orders
-in DealerWeb until that's confirmed; see the
-[ordering with baskets recipe](./recipes/ordering-with-baskets.md) for the current state of
-write access.
+Partly. Reading your basket (`GET /api/baskets/`) and adding, updating or removing one
+basket line (`PATCH /api/baskets/`, `setBasketLine` in both SDKs) are both verified
+against the live API — see [docs/reference/baskets.md](./reference/baskets.md). Placing
+the order itself is not part of this API — no checkout/confirm-shaped call was found or
+tried; finish the order in DealerWeb once the basket has what you want in it. See the
+[ordering with baskets recipe](./recipes/ordering-with-baskets.md) for the verified flow
+and a live-run example.
 
 ## Which SDK should I use for a WooCommerce shop?
 

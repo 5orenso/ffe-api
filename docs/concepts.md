@@ -64,7 +64,8 @@ categories sit **products**.
 What the API calls a "product" is really one variant: a single size/colour combination,
 identified by `articleno`. A shop-facing "product" (one name, several sizes and colours)
 is something you build yourself by grouping variants that share a name — see
-[Variants](#variants) below.
+[Variants](#variants) below. Every field of a product, with its type and meaning, is
+listed under [Fields: Product](./reference/products.md#fields-product) in the reference.
 
 Two real main-level categories look like this (trimmed):
 

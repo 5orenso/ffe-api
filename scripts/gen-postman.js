@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const METHOD_ORDER = ['get', 'post', 'put', 'delete'];
+const METHOD_ORDER = ['get', 'post', 'put', 'patch', 'delete', 'options'];
 
 function resolveRef(spec, obj) {
     if (obj && typeof obj.$ref === 'string') {
@@ -80,15 +80,29 @@ function render(spec) {
     };
 }
 
+// True if `filePath` is missing or its content differs from `rendered`.
+function isStale(filePath, rendered) {
+    return !fs.existsSync(filePath) || fs.readFileSync(filePath, 'utf8') !== rendered;
+}
+
 function main() {
     const root = path.join(__dirname, '..');
     const spec = yaml.load(fs.readFileSync(path.join(root, 'openapi.yaml'), 'utf8'));
     const dir = path.join(root, 'postman');
-    fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, 'ffe-api.postman_collection.json');
-    fs.writeFileSync(file, JSON.stringify(render(spec), null, 2) + '\n');
+    const rendered = JSON.stringify(render(spec), null, 2) + '\n';
+    if (process.argv.includes('--check')) {
+        if (isStale(file, rendered)) {
+            console.error('postman collection is out of date (run npm run gen:postman)');
+            process.exit(1);
+        }
+        console.log('postman collection is up to date');
+        return;
+    }
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(file, rendered);
     console.log(`wrote ${path.relative(root, file)}`);
 }
 
-module.exports = { render };
+module.exports = { render, isStale };
 if (require.main === module) main();
